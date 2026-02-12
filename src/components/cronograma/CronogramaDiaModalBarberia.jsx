@@ -24,30 +24,6 @@ const ESTADO_DESC = {
   HORARIO_ESPECIAL: "Horario distinto al habitual",
 };
 
-const ESTADO_UI = {
-  NORMAL: {
-    card: "border-gray-300 bg-gray-50 text-gray-700",
-    active: "border-gray-400 bg-gray-100",
-    badge: "bg-gray-200 text-gray-700",
-    insite: "bg-white border-gray-200",
-    primaryBtn: "bg-gray-700 text-white hover:bg-gray-800",
-  },
-  CERRADO: {
-    card: "border-red-200 bg-red-50 text-red-700",
-    active: "border-red-600 bg-red-100",
-    badge: "bg-red-600 text-white",
-    insite: "bg-red-50 border-red-200",
-    primaryBtn: "bg-red-600 text-white hover:bg-red-700",
-  },
-  HORARIO_ESPECIAL: {
-    card: "border-yellow-200 bg-yellow-50 text-yellow-800",
-    active: "border-yellow-500 bg-yellow-100",
-    badge: "bg-yellow-400 text-black",
-    insite: "bg-yellow-50 border-yellow-200",
-    primaryBtn: "bg-yellow-400 text-black hover:bg-yellow-500",
-  },
-};
-
 /* =========================
    HELPERS
 ========================= */
@@ -77,7 +53,7 @@ export default function CronogramaDiaModalBarberia({
   onCancel,
   onSaved,
 }) {
-  const insiteRef = useRef(null);
+  const containerRef = useRef(null);
 
   const existeCronograma = useMemo(() => {
     if (!cronogramaInicial) return false;
@@ -129,6 +105,18 @@ export default function CronogramaDiaModalBarberia({
   }, [cronogramaInicial]);
 
   /* =========================
+     SCROLL AUTOMÁTICO
+  ========================= */
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    containerRef.current.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }, [estado]);
+
+  /* =========================
      VALIDACIÓN HORARIO ESPECIAL
   ========================= */
   useEffect(() => {
@@ -150,7 +138,6 @@ export default function CronogramaDiaModalBarberia({
     }
   }, [estado, horarioEspecial]);
 
-  const ui = ESTADO_UI[estado];
   const puedeGuardar =
     !loading &&
     (estado !== ESTADOS.HORARIO_ESPECIAL || !errorHorario);
@@ -235,17 +222,36 @@ export default function CronogramaDiaModalBarberia({
   }
 
   /* =========================
-     RENDER
+     CLASES DINÁMICAS
   ========================= */
+  const getCardBaseStyle = (e) => {
+    if (e === ESTADOS.CERRADO)
+      return "border-red-200 bg-red-50 text-red-700";
+    if (e === ESTADOS.HORARIO_ESPECIAL)
+      return "border-yellow-200 bg-yellow-50 text-yellow-800";
+    return "border-gray-300 bg-gray-50 text-gray-700";
+  };
+
+  const getCardActiveStyle = (e) => {
+    if (e === ESTADOS.CERRADO)
+      return "border-red-500 bg-red-100";
+    if (e === ESTADOS.HORARIO_ESPECIAL)
+      return "border-yellow-400 bg-yellow-100";
+    return "border-gray-400 bg-gray-100";
+  };
+
   return (
     <>
-      <div ref={insiteRef} className={`rounded-xl border p-6 ${ui.insite}`}>
+      <div
+        ref={containerRef}
+        className="rounded-xl border p-6 bg-white border-gray-200"
+      >
         {/* HEADER */}
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-extrabold capitalize">
             {formatFecha(fecha)}
           </h2>
-          <span className={`px-3 py-1 rounded text-xs ${ui.badge}`}>
+          <span className="px-3 py-1 rounded text-xs bg-gray-200">
             {ESTADO_LABEL[estado]}
           </span>
         </div>
@@ -256,8 +262,10 @@ export default function CronogramaDiaModalBarberia({
             <button
               key={e}
               onClick={() => setEstado(e)}
-              className={`border rounded-lg p-3 text-left transition ${
-                estado === e ? ui.active : ui.card
+              className={`border rounded-lg p-3 text-left transition-all duration-200 transform hover:-translate-y-1 hover:shadow-md ${
+                estado === e
+                  ? getCardActiveStyle(e)
+                  : getCardBaseStyle(e)
               }`}
             >
               <p className="font-semibold">{ESTADO_LABEL[e]}</p>
@@ -299,39 +307,42 @@ export default function CronogramaDiaModalBarberia({
 
         {/* FOOTER */}
         <div className="flex items-center justify-between mt-6">
-          {/* BORRAR */}
           {existeCronograma && (
-            <div>
-              {!confirmarBorrado ? (
-                <button
-                  onClick={() => setConfirmarBorrado(true)}
-                  className="text-sm text-red-700 hover:underline"
-                >
-                  🗑️ Borrar cronograma
-                </button>
-              ) : (
-                <div className="flex items-center gap-2 text-sm">
-                  <span>¿Borrar este cronograma?</span>
-                  <button
-                    onClick={() => setConfirmarBorrado(false)}
-                    className="px-3 py-1 border rounded"
-                    disabled={loading}
-                  >
-                    No
-                  </button>
-                  <button
-                    onClick={handleBorrar}
-                    className="px-3 py-1 bg-red-600 text-white rounded"
-                    disabled={loading}
-                  >
-                    Sí, borrar
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
+  <>
+    {!confirmarBorrado ? (
+      <button
+        onClick={() => setConfirmarBorrado(true)}
+        disabled={loading}
+        className="text-sm text-red-700 hover:underline"
+      >
+        🗑️ Borrar cronograma
+      </button>
+    ) : (
+      <div className="flex items-center gap-3 text-sm">
+        <span>
+          ¿Seguro de borrar el cronograma del día{" "}
+          <strong>{formatFecha(fecha)}</strong>?
+        </span>
+        <button
+          onClick={() => setConfirmarBorrado(false)}
+          className="px-3 py-1 border rounded"
+          disabled={loading}
+        >
+          Cancelar
+        </button>
+        <button
+          onClick={handleBorrar}
+          className="px-3 py-1 bg-red-600 text-white rounded"
+          disabled={loading}
+        >
+          Sí, borrar
+        </button>
+      </div>
+    )}
+  </>
+)}
 
-          {/* ACCIONES */}
+
           <div className="flex gap-2">
             <button
               onClick={onCancel}
@@ -343,7 +354,7 @@ export default function CronogramaDiaModalBarberia({
             <button
               onClick={() => handleGuardar(false)}
               disabled={!puedeGuardar}
-              className={`px-4 py-2 rounded font-semibold ${ui.primaryBtn} disabled:opacity-50`}
+              className="px-4 py-2 rounded font-semibold bg-gray-800 text-white hover:bg-gray-900 disabled:opacity-50"
             >
               Guardar
             </button>
@@ -360,3 +371,4 @@ export default function CronogramaDiaModalBarberia({
     </>
   );
 }
+
