@@ -6,18 +6,19 @@ import OwnerLayout from "../layouts/OwnerLayout";
 // páginas privadas
 import Dashboard from "../pages/Dashboard";
 import Barberos from "../pages/Barberos";
-import EstadoDiario from "../pages/EstadoDiario";
+import HorariosBarberos from "../pages/HorariosBarberos";
 import Contabilidad from "../pages/Contabilidad";
 import RegistrarCorte from "../pages/RegistrarCorte";
 import OrdenBarberos from "../pages/OrdenBarberos";
 import AgendaDelDia from "../pages/AgendaDelDia";
+import CronogramaBarberia from "../pages/CronogramaBarberia";
 
 // públicas
 import Login from "../pages/Login";
 import EstadoPublico from "../pages/EstadoPublico";
 
 const router = createBrowserRouter([
-  // 🔓 LOGIN PÚBLICO
+  // 🔓 LOGIN
   {
     path: "/",
     element: <Login />,
@@ -31,8 +32,9 @@ const router = createBrowserRouter([
       { index: true, element: <Dashboard /> },
       { path: "dashboard", element: <Dashboard /> },
       { path: "barberos", element: <Barberos /> },
-      { path: "estado-diario", element: <EstadoDiario /> },
+      { path: "horarios-barberos", element: <HorariosBarberos /> },
       { path: "agenda-del-dia", element: <AgendaDelDia /> },
+      { path: "cronograma", element: <CronogramaBarberia /> },
       { path: "contabilidad", element: <Contabilidad /> },
       { path: "registrar-corte", element: <RegistrarCorte /> },
       { path: "orden-barberos", element: <OrdenBarberos /> },
