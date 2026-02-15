@@ -1,32 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { supabase } from "../../lib/supabase";
 import HorarioEspecialForm from "./HorarioEspecialForm";
 import ConfirmarHorarioEspecialModal from "./ConfirmarHorarioEspecialModal";
+import {
+  useCronogramaDiaBarberia,
+  ESTADOS,
+  ESTADO_LABEL,
+  ESTADO_DESC,
+} from "../../hooks/useCronogramaDiaBarberia";
 
-/* =========================
-   ESTADOS
-========================= */
-const ESTADOS = {
-  NORMAL: "NORMAL",
-  CERRADO: "CERRADO",
-  HORARIO_ESPECIAL: "HORARIO_ESPECIAL",
-};
-
-const ESTADO_LABEL = {
-  NORMAL: "Normal",
-  CERRADO: "Cierre total",
-  HORARIO_ESPECIAL: "Horario especial",
-};
-
-const ESTADO_DESC = {
-  NORMAL: "Día normal según horarios base",
-  CERRADO: "La barbería permanece cerrada todo el día",
-  HORARIO_ESPECIAL: "Horario distinto al habitual",
-};
-
-/* =========================
-   HELPERS
-========================= */
 function formatFecha(fecha) {
   const d = new Date(fecha + "T00:00:00");
   return d.toLocaleDateString("es-CL", {
@@ -37,14 +17,6 @@ function formatFecha(fecha) {
   });
 }
 
-function horaValida(haH, hcH) {
-  if (!haH || !hcH) return false;
-  return Number(hcH) > Number(haH);
-}
-
-/* =========================
-   COMPONENTE
-========================= */
 export default function CronogramaDiaModalBarberia({
   fecha,
   barberiaId,
@@ -53,177 +25,35 @@ export default function CronogramaDiaModalBarberia({
   onCancel,
   onSaved,
 }) {
-  const containerRef = useRef(null);
-
-  const existeCronograma = useMemo(() => {
-    if (!cronogramaInicial) return false;
-    return (
-      cronogramaInicial.local_cerrado ||
-      cronogramaInicial.horario_especial
-    );
-  }, [cronogramaInicial]);
-
-  const [estado, setEstado] = useState(ESTADOS.NORMAL);
-  const [motivo, setMotivo] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [errorHorario, setErrorHorario] = useState("");
-  const [errorRPC, setErrorRPC] = useState("");
-  const [confirmarBorrado, setConfirmarBorrado] = useState(false);
-  const [confirmarGuardarHorarioEspecial, setConfirmarGuardarHorarioEspecial] =
-    useState(false);
-
-  const [horarioEspecial, setHorarioEspecial] = useState({
-    haH: "",
-    haM: "00",
-    hcH: "",
-    hcM: "00",
+  const {
+    containerRef,
+    existeCronograma,
+    estado,
+    setEstado,
+    motivo,
+    setMotivo,
+    horarioEspecial,
+    setHorarioEspecial,
+    errorHorario,
+    errorRPC,
+    loading,
+    confirmarBorrado,
+    setConfirmarBorrado,
+    confirmarGuardarHorarioEspecial,
+    setConfirmarGuardarHorarioEspecial,
+    handleGuardar,
+    handleBorrar,
+  } = useCronogramaDiaBarberia({
+    fecha,
+    barberiaId,
+    cronogramaInicial,
+    onSaved,
   });
-
-  /* =========================
-     INIT
-  ========================= */
-  useEffect(() => {
-    setConfirmarBorrado(false);
-    setConfirmarGuardarHorarioEspecial(false);
-    setErrorRPC("");
-    setErrorHorario("");
-
-    if (!cronogramaInicial) {
-      setEstado(ESTADOS.NORMAL);
-      setMotivo("");
-      setHorarioEspecial({ haH: "", haM: "00", hcH: "", hcM: "00" });
-      return;
-    }
-
-    if (cronogramaInicial.local_cerrado) {
-      setEstado(ESTADOS.CERRADO);
-    } else if (cronogramaInicial.horario_especial) {
-      setEstado(ESTADOS.HORARIO_ESPECIAL);
-    }
-
-    setMotivo(cronogramaInicial.motivo || "");
-  }, [cronogramaInicial]);
-
-  /* =========================
-     SCROLL AUTOMÁTICO
-  ========================= */
-  useEffect(() => {
-    if (!containerRef.current) return;
-
-    containerRef.current.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  }, [estado]);
-
-  /* =========================
-     VALIDACIÓN HORARIO ESPECIAL
-  ========================= */
-  useEffect(() => {
-    setErrorHorario("");
-
-    if (estado !== ESTADOS.HORARIO_ESPECIAL) return;
-
-    const { haH, hcH } = horarioEspecial;
-
-    if (!haH || !hcH) {
-      setErrorHorario("Debes definir hora de apertura y cierre.");
-      return;
-    }
-
-    if (!horaValida(haH, hcH)) {
-      setErrorHorario(
-        "La hora de cierre debe ser posterior a la hora de apertura."
-      );
-    }
-  }, [estado, horarioEspecial]);
 
   const puedeGuardar =
     !loading &&
     (estado !== ESTADOS.HORARIO_ESPECIAL || !errorHorario);
 
-  /* =========================
-     GUARDAR
-  ========================= */
-  async function handleGuardar(force = false) {
-    if (!barberiaId || !fecha) return;
-    if (errorHorario) return;
-
-    if (
-      estado === ESTADOS.HORARIO_ESPECIAL &&
-      !force &&
-      !confirmarGuardarHorarioEspecial
-    ) {
-      setConfirmarGuardarHorarioEspecial(true);
-      return;
-    }
-
-    setLoading(true);
-    setErrorRPC("");
-
-    const { error } = await supabase.rpc(
-      "rpc_upsert_cronograma_barberia_dia",
-      {
-        p_barberia_id: barberiaId,
-        p_fecha: fecha,
-        p_local_cerrado: estado === ESTADOS.CERRADO,
-        p_horario_especial: estado === ESTADOS.HORARIO_ESPECIAL,
-        p_hora_apertura:
-          estado === ESTADOS.HORARIO_ESPECIAL
-            ? `${horarioEspecial.haH}:00:00`
-            : null,
-        p_hora_cierre:
-          estado === ESTADOS.HORARIO_ESPECIAL
-            ? `${horarioEspecial.hcH}:00:00`
-            : null,
-        p_motivo: motivo?.trim() || null,
-      }
-    );
-
-    setLoading(false);
-
-    if (error) {
-      setErrorRPC(error.message || "No se pudo guardar el cronograma.");
-      return;
-    }
-
-    onSaved?.();
-  }
-
-  /* =========================
-     BORRAR
-  ========================= */
-  async function handleBorrar() {
-    setLoading(true);
-    setErrorRPC("");
-
-    const { error } = await supabase.rpc(
-      "rpc_upsert_cronograma_barberia_dia",
-      {
-        p_barberia_id: barberiaId,
-        p_fecha: fecha,
-        p_local_cerrado: false,
-        p_horario_especial: false,
-        p_hora_apertura: null,
-        p_hora_cierre: null,
-        p_motivo: null,
-      }
-    );
-
-    setLoading(false);
-
-    if (error) {
-      setErrorRPC(error.message || "No se pudo borrar el cronograma.");
-      return;
-    }
-
-    setConfirmarBorrado(false);
-    onSaved?.();
-  }
-
-  /* =========================
-     CLASES DINÁMICAS
-  ========================= */
   const getCardBaseStyle = (e) => {
     if (e === ESTADOS.CERRADO)
       return "border-red-200 bg-red-50 text-red-700";
@@ -246,7 +76,6 @@ export default function CronogramaDiaModalBarberia({
         ref={containerRef}
         className="rounded-xl border p-6 bg-white border-gray-200"
       >
-        {/* HEADER */}
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-extrabold capitalize">
             {formatFecha(fecha)}
@@ -256,7 +85,6 @@ export default function CronogramaDiaModalBarberia({
           </span>
         </div>
 
-        {/* SELECTOR */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
           {Object.values(ESTADOS).map((e) => (
             <button
@@ -274,7 +102,6 @@ export default function CronogramaDiaModalBarberia({
           ))}
         </div>
 
-        {/* FORM HORARIO ESPECIAL */}
         {estado === ESTADOS.HORARIO_ESPECIAL && (
           <>
             <HorarioEspecialForm
@@ -290,7 +117,6 @@ export default function CronogramaDiaModalBarberia({
           </>
         )}
 
-        {/* MOTIVO */}
         {estado !== ESTADOS.NORMAL && (
           <textarea
             className="w-full border rounded p-2 mt-3"
@@ -305,43 +131,41 @@ export default function CronogramaDiaModalBarberia({
           <p className="text-red-700 text-sm mt-2">⚠️ {errorRPC}</p>
         )}
 
-        {/* FOOTER */}
         <div className="flex items-center justify-between mt-6">
           {existeCronograma && (
-  <>
-    {!confirmarBorrado ? (
-      <button
-        onClick={() => setConfirmarBorrado(true)}
-        disabled={loading}
-        className="text-sm text-red-700 hover:underline"
-      >
-        🗑️ Borrar cronograma
-      </button>
-    ) : (
-      <div className="flex items-center gap-3 text-sm">
-        <span>
-          ¿Seguro de borrar el cronograma del día{" "}
-          <strong>{formatFecha(fecha)}</strong>?
-        </span>
-        <button
-          onClick={() => setConfirmarBorrado(false)}
-          className="px-3 py-1 border rounded"
-          disabled={loading}
-        >
-          Cancelar
-        </button>
-        <button
-          onClick={handleBorrar}
-          className="px-3 py-1 bg-red-600 text-white rounded"
-          disabled={loading}
-        >
-          Sí, borrar
-        </button>
-      </div>
-    )}
-  </>
-)}
-
+            <>
+              {!confirmarBorrado ? (
+                <button
+                  onClick={() => setConfirmarBorrado(true)}
+                  disabled={loading}
+                  className="text-sm text-red-700 hover:underline"
+                >
+                  🗑️ Borrar cronograma
+                </button>
+              ) : (
+                <div className="flex items-center gap-3 text-sm">
+                  <span>
+                    ¿Seguro de borrar el cronograma del día{" "}
+                    <strong>{formatFecha(fecha)}</strong>?
+                  </span>
+                  <button
+                    onClick={() => setConfirmarBorrado(false)}
+                    className="px-3 py-1 border rounded"
+                    disabled={loading}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleBorrar}
+                    className="px-3 py-1 bg-red-600 text-white rounded"
+                    disabled={loading}
+                  >
+                    Sí, borrar
+                  </button>
+                </div>
+              )}
+            </>
+          )}
 
           <div className="flex gap-2">
             <button
@@ -371,4 +195,3 @@ export default function CronogramaDiaModalBarberia({
     </>
   );
 }
-

@@ -12,6 +12,17 @@ export default function OrdenBarberos() {
   const [historial, setHistorial] = useState([null, null])
   const [localAbierto, setLocalAbierto] = useState(true)
 
+  // 🔥 Día actual Chile blindado
+  const hoyChile = useMemo(() => {
+    return new Intl.DateTimeFormat("es-CL", {
+      timeZone: "America/Santiago",
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }).format(new Date())
+  }, [])
+
   useEffect(() => {
     cargarTodo()
   }, [])
@@ -19,12 +30,10 @@ export default function OrdenBarberos() {
   async function cargarTodo() {
     const hoy = new Date().toISOString().split("T")[0]
 
-    // Usuario actual
     const { data: userData } = await supabase.auth.getUser()
     const userId = userData?.user?.id
     if (!userId) return
 
-    // Barbería del usuario
     const { data: barberiaData } = await supabase
       .from("barberias")
       .select("id")
@@ -35,7 +44,6 @@ export default function OrdenBarberos() {
 
     const barberiaId = barberiaData.id
 
-    // 🔴 Detectar si el local está abierto hoy
     const { data: localData } = await supabase
       .from("v_horario_local")
       .select("abierto")
@@ -45,7 +53,6 @@ export default function OrdenBarberos() {
 
     setLocalAbierto(localData?.abierto ?? false)
 
-    // 1️⃣ Traer barberos
     const { data: barberosData } = await supabase
       .from("v_barberos")
       .select("id, nombre")
@@ -54,9 +61,6 @@ export default function OrdenBarberos() {
 
     if (!barberosData) return
 
-    const ids = barberosData.map((b) => b.id)
-
-    // 2️⃣ Traer horarios de hoy
     const { data: horariosHoy } = await supabase
       .from("v_horario_barberos")
       .select("barbero_id, presente_final")
@@ -84,7 +88,6 @@ export default function OrdenBarberos() {
     setOrdenIds(listaFinal.map((b) => b.id))
   }
 
-  // SOLO PRESENTES PARA TURNO
   const presentes = useMemo(() => {
     return ordenIds
       .map((id) => barberos.find((b) => b.id === id))
@@ -116,6 +119,19 @@ export default function OrdenBarberos() {
     setIndiceActual((i) => (i + 1) % presentes.length)
   }
 
+  const handleRetroceder = () => {
+    if (presentes.length === 0 || !localAbierto) return
+
+    setIndiceActual((i) =>
+      i === 0 ? presentes.length - 1 : i - 1
+    )
+
+    setHistorial((prev) => {
+      const [h1] = prev
+      return [null, h1]
+    })
+  }
+
   const moveInOrder = (id, dir) => {
     setOrdenIds((prev) => {
       const idx = prev.indexOf(id)
@@ -132,9 +148,17 @@ export default function OrdenBarberos() {
 
   return (
     <div className="p-5">
-      <h1 className="text-xl font-semibold mb-5">
-        Orden de barberos
-      </h1>
+      
+      {/* HEADER */}
+      <div className="flex justify-between items-start mb-6">
+        <h1 className="text-xl font-semibold">
+          Orden de barberos
+        </h1>
+
+        <div className="text-right text-sm text-zinc-500 capitalize">
+          {hoyChile}
+        </div>
+      </div>
 
       {!localAbierto && (
         <div className="mb-6 bg-red-100 text-red-700 border border-red-300 px-4 py-3 font-semibold">
@@ -148,12 +172,14 @@ export default function OrdenBarberos() {
         luego={luego}
         historial={historial}
         onAtendio={handleAtendio}
+        onRetroceder={handleRetroceder}
         bloqueado={!localAbierto}
       />
 
       <div className="flex justify-center gap-6">
         <ConfigurarOrdenBarberos
           activos={barberos}
+          ordenIds={ordenIds}
           onMove={moveInOrder}
         />
 

@@ -3,9 +3,6 @@ import { supabase } from "../lib/supabase";
 import { useBarberia } from "../context/BarberiaContext";
 import CronogramaDiaModalBarberia from "../components/cronograma/CronogramaDiaModalBarberia";
 
-/* =========================
-   UI ESTADOS
-========================= */
 const ESTADO_UI = {
   CERRADO: {
     label: "Cerrado",
@@ -19,9 +16,6 @@ const ESTADO_UI = {
   },
 };
 
-/* =========================
-   FECHAS
-========================= */
 const MESES = [
   "Enero","Febrero","Marzo","Abril","Mayo","Junio",
   "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
@@ -33,9 +27,6 @@ const VENTANA_MESES = 6;
 const startOfMonth = (d) => new Date(d.getFullYear(), d.getMonth(), 1);
 const addMonths = (d, n) => new Date(d.getFullYear(), d.getMonth() + n, 1);
 
-/* =========================
-   COMPONENTE
-========================= */
 export default function CronogramaBarberia() {
   const { barberia, loading } = useBarberia();
   const barberiaId = barberia?.id;
@@ -51,13 +42,9 @@ export default function CronogramaBarberia() {
 
   const panelDiaRef = useRef(null);
 
-  /* =========================
-     DERIVADOS
-  ========================= */
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-
   const firstDayWeekIndex =
     (new Date(year, month, 1).getDay() + 6) % 7;
 
@@ -66,9 +53,6 @@ export default function CronogramaBarberia() {
     [windowStart]
   );
 
-  /* =========================
-     EFFECTS
-  ========================= */
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
@@ -95,7 +79,6 @@ export default function CronogramaBarberia() {
   async function cargarHorariosBase() {
     if (!barberiaId) return;
 
-    // ✅ TABLA CORRECTA
     const { data } = await supabase
       .from("barberia_horario_semanal")
       .select("hora_apertura, hora_cierre")
@@ -110,7 +93,6 @@ export default function CronogramaBarberia() {
     if (!authChecked || !session || !barberiaId) return;
     cargarCronogramaMes();
     cargarHorariosBase();
-    // eslint-disable-next-line
   }, [currentDate, barberiaId, authChecked, session]);
 
   useEffect(() => {
@@ -119,15 +101,9 @@ export default function CronogramaBarberia() {
     }
   }, [diaSeleccionado]);
 
-  /* =========================
-     HELPERS
-  ========================= */
   const cronogramaDelDia = (fecha) =>
     cronogramasMes.find((d) => d.fecha === fecha) || null;
 
-  /* =========================
-     GUARDS
-  ========================= */
   if (!authChecked || loading) {
     return <div className="p-6 text-gray-500">Cargando barbería…</div>;
   }
@@ -144,12 +120,9 @@ export default function CronogramaBarberia() {
     return <div className="p-6 text-gray-500">Barbería no encontrada.</div>;
   }
 
-  /* =========================
-     RENDER
-  ========================= */
   return (
     <div className="p-6">
-      {/* HEADER */}
+
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-extrabold mb-1">
@@ -198,14 +171,12 @@ export default function CronogramaBarberia() {
         </div>
       </div>
 
-      {/* DÍAS SEMANA */}
       <div className="grid grid-cols-7 mb-2 text-center text-sm font-semibold text-gray-600">
         {DIAS_SEMANA.map((d) => (
           <div key={d}>{d}</div>
         ))}
       </div>
 
-      {/* CALENDARIO */}
       <div className="grid grid-cols-7 gap-2">
         {Array.from({ length: firstDayWeekIndex }).map((_, i) => (
           <div key={`empty-${i}`} />
@@ -224,23 +195,39 @@ export default function CronogramaBarberia() {
             <div
               key={fechaISO}
               onClick={() => setDiaSeleccionado(fechaISO)}
-              className="cursor-pointer border rounded p-2 h-28 bg-white hover:bg-gray-50"
+              className="cursor-pointer border rounded p-2 h-28 bg-white hover:bg-gray-50 flex flex-col"
             >
               <div className="font-bold">{day}</div>
 
               {ui && (
-                <span
-                  className={`mt-2 inline-flex text-xs px-2 py-1 rounded ${ui.color}`}
-                >
-                  {ui.icon} {ui.label}
-                </span>
+                <div className="mt-2 space-y-1">
+                  <span
+                    className={`inline-flex text-xs px-2 py-1 rounded ${ui.color}`}
+                  >
+                    {ui.icon} {ui.label}
+                  </span>
+
+                  {item?.horario_especial &&
+                    item?.hora_apertura &&
+                    item?.hora_cierre && (
+                      <div className="text-[11px] text-gray-700 font-medium">
+                        {item.hora_apertura.slice(0, 5)} -{" "}
+                        {item.hora_cierre.slice(0, 5)}
+                      </div>
+                    )}
+
+                  {item?.motivo && (
+                    <div className="text-[10px] text-gray-500 italic line-clamp-2">
+                      {item.motivo}
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           );
         })}
       </div>
 
-      {/* PANEL DÍA (INSITE) */}
       {diaSeleccionado && (
         <div ref={panelDiaRef} className="mt-10">
           <CronogramaDiaModalBarberia

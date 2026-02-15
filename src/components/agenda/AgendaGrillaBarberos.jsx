@@ -6,11 +6,8 @@ import DetalleReservaModal from "./DetalleReservaModal";
 export default function AgendaGrillaBarberos({ barberiaId, fechaISO }) {
   const [barberos, setBarberos] = useState([]);
   const [bloques, setBloques] = useState([]);
-  const [reservas, setReservas] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const [hoverHora, setHoverHora] = useState(null);
-  const [hoverBarbero, setHoverBarbero] = useState(null);
+  const [cerradoTotal, setCerradoTotal] = useState(false);
 
   const [modalCrear, setModalCrear] = useState(null);
   const [modalReserva, setModalReserva] = useState(null);
@@ -21,6 +18,7 @@ export default function AgendaGrillaBarberos({ barberiaId, fechaISO }) {
     const cargar = async () => {
       setLoading(true);
 
+      // 1️⃣ Barberos activos
       const { data: barberosData } = await supabase
         .from("barberos")
         .select("id, nombre")
@@ -28,60 +26,65 @@ export default function AgendaGrillaBarberos({ barberiaId, fechaISO }) {
         .eq("activo", true)
         .order("nombre");
 
-      const jsDay = new Date(`${fechaISO}T00:00:00`).getDay();
-      const diaSemana = jsDay === 0 ? 7 : jsDay;
-
+      // 2️⃣ Ver si cerrado total
       const { data: horario } = await supabase
-        .from("barberia_horario_semanal")
-        .select("hora_apertura, hora_cierre")
+        .from("v_barberia_horario_efectivo")
+        .select("cerrado_total")
         .eq("barberia_id", barberiaId)
-        .eq("dia_semana", diaSemana)
-        .eq("activo", true)
+        .eq("fecha", fechaISO)
         .maybeSingle();
 
-      let bloquesGenerados = [];
-
-      if (horario?.hora_apertura && horario?.hora_cierre) {
-        let h = horario.hora_apertura.slice(0, 5);
-        const cierre = horario.hora_cierre.slice(0, 5);
-
-        while (h < cierre) {
-          bloquesGenerados.push(h);
-          const [hh, mm] = h.split(":").map(Number);
-          const next = new Date(0, 0, 0, hh, mm + 60);
-          h = next.toTimeString().slice(0, 5);
-        }
+      if (horario?.cerrado_total) {
+        setCerradoTotal(true);
+        setLoading(false);
+        return;
       }
 
-      const { data: reservasData } = await supabase
-        .from("agendas")
+      setCerradoTotal(false);
+
+      // 3️⃣ Bloques finales (View 3)
+      const { data: bloquesData } = await supabase
+        .from("v_agenda_bloques_final")
         .select("*")
         .eq("barberia_id", barberiaId)
         .eq("fecha", fechaISO);
 
       setBarberos(barberosData || []);
-      setBloques(bloquesGenerados);
-      setReservas(reservasData || []);
+      setBloques(bloquesData || []);
       setLoading(false);
     };
 
     cargar();
   }, [barberiaId, fechaISO]);
 
-  const mapaReservas = useMemo(() => {
+  // Horas únicas ordenadas
+  const horasUnicas = useMemo(() => {
+    const setHoras = new Set(bloques.map((b) => b.hora.slice(0, 5)));
+    return Array.from(setHoras).sort();
+  }, [bloques]);
+
+  // Mapa por barbero + hora
+  const mapaBloques = useMemo(() => {
     const map = {};
-    reservas.forEach((r) => {
-      map[`${r.barbero_id}_${r.hora.slice(0, 5)}`] = r;
+    bloques.forEach((b) => {
+      map[`${b.barbero_id}_${b.hora.slice(0, 5)}`] = b;
     });
     return map;
-  }, [reservas]);
+  }, [bloques]);
 
   if (loading) return <p>Cargando agenda…</p>;
+
+  if (cerradoTotal) {
+    return (
+      <div className="p-6 text-center font-bold text-red-600">
+        🚫 Local cerrado este día
+      </div>
+    );
+  }
 
   return (
     <>
       <table className="w-full table-fixed border-2 border-gray-300 rounded-lg overflow-hidden">
-
         <colgroup>
           <col className="w-[90px]" />
           {barberos.map((b) => (
@@ -93,12 +96,7 @@ export default function AgendaGrillaBarberos({ barberiaId, fechaISO }) {
           <tr className="bg-gray-100">
             <th className="p-3 border font-black text-sm">Hora</th>
             {barberos.map((b) => (
-              <th
-                key={b.id}
-                className={`p-3 border font-black text-sm transition-all duration-200 ${
-                  hoverBarbero === b.id ? "bg-blue-100 shadow-inner" : ""
-                }`}
-              >
+              <th key={b.id} className="p-3 border font-black text-sm">
                 {b.nombre}
               </th>
             ))}
@@ -106,92 +104,104 @@ export default function AgendaGrillaBarberos({ barberiaId, fechaISO }) {
         </thead>
 
         <tbody>
-          {bloques.map((hora, idx) => (
+          {horasUnicas.map((hora, idx) => (
             <Fragment key={hora}>
               <tr>
-                <td
-                  className={`p-3 border font-bold text-sm whitespace-nowrap transition-all duration-200 ${
-                    hoverHora === hora
-                      ? "bg-blue-100 shadow-inner"
-                      : "bg-gray-100"
-                  }`}
-                >
+                <td className="p-3 border font-bold text-sm bg-gray-100">
                   ⏰ {hora}
                 </td>
 
                 {barberos.map((b) => {
-                  const reserva = mapaReservas[`${b.id}_${hora}`];
+                  const bloque =
+                    mapaBloques[`${b.id}_${hora}`];
+
+                  if (!bloque) {
+                    return (
+                      <td key={b.id} className="p-3 border text-center">
+                        -
+                      </td>
+                    );
+                  }
+
+                  const {
+                    estado_bloque_final,
+                    agenda_id,
+                    estado_final,
+                  } = bloque;
 
                   let contenido;
+                  let bgColor = "";
 
-                  if (!reserva) {
+                  if (estado_bloque_final === "AUSENTE") {
+                    contenido = (
+                      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-200 text-gray-600">
+                        Ausente
+                      </span>
+                    );
+                  }
+
+                  else if (estado_bloque_final === "EN_COLACION") {
+                    contenido = (
+                      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
+                        En colación
+                      </span>
+                    );
+                  }
+
+                  else if (estado_bloque_final === "RESERVADA") {
+                    bgColor = "bg-blue-100/70";
+
+                    contenido = (
+                      <div className="text-xs font-semibold">
+                        <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-700">
+                          Reservada
+                        </span>
+
+                        {estado_final === "si_vino" && (
+                          <div className="mt-1 text-green-600 font-bold">
+                            / Si vino
+                          </div>
+                        )}
+
+                        {estado_final === "no_vino" && (
+                          <div className="mt-1 text-red-600 font-bold">
+                            / No vino
+                          </div>
+                        )}
+
+                        {estado_final == null && (
+                          <div className="mt-1 text-gray-500 font-semibold">
+                            / ¿Asistió?
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
+
+                  else {
                     contenido = (
                       <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
                         Libre
                       </span>
                     );
-                  } else {
-                    if (reserva.estado_final === "si_vino") {
-                      contenido = (
-                        <div className="text-xs font-semibold">
-                          <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-700">
-                            Reservada
-                          </span>
-                          <div className="mt-1 text-green-600 font-bold">
-                            / Si vino
-                          </div>
-                        </div>
-                      );
-                    } else if (reserva.estado_final === "no_vino") {
-                      contenido = (
-                        <div className="text-xs font-semibold">
-                          <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-700">
-                            Reservada
-                          </span>
-                          <div className="mt-1 text-red-600 font-bold">
-                            / No vino
-                          </div>
-                        </div>
-                      );
-                    } else {
-                      contenido = (
-                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
-                          Reservada
-                        </span>
-                      );
-                    }
                   }
-
-                  const isHovered =
-                    hoverHora === hora || hoverBarbero === b.id;
 
                   return (
                     <td
                       key={b.id}
-                      className={`p-3 border text-center cursor-pointer transition-all duration-200 relative ${
-  isHovered
-    ? "bg-blue-50"
-    : reserva
-      ? "bg-blue-100/70"
-      : ""
-}`}
-onMouseEnter={() => {
-  setHoverHora(hora);
-  setHoverBarbero(b.id);
-}}
-onMouseLeave={() => {
-  setHoverHora(null);
-  setHoverBarbero(null);
-}}
-onClick={() => {
-  if (reserva) setModalReserva(reserva);
-  else
-    setModalCrear({
-      barbero_id: b.id,
-      hora,
-      fecha: fechaISO,
-    });
-}}
+                      className={`p-3 border text-center cursor-pointer ${bgColor}`}
+                      onClick={() => {
+                        if (estado_bloque_final !== "DISPONIBLE") {
+                          if (agenda_id) setModalReserva(bloque);
+                          return;
+                        }
+
+                        setModalCrear({
+                          barbero_id: b.id,
+                          hora,
+                          fecha: fechaISO,
+                        });
+                      }}
                     >
                       {contenido}
                     </td>
@@ -199,7 +209,7 @@ onClick={() => {
                 })}
               </tr>
 
-              {idx !== bloques.length - 1 && (
+              {idx !== horasUnicas.length - 1 && (
                 <tr aria-hidden="true">
                   <td colSpan={barberos.length + 1} className="p-0 border-0">
                     <div className="h-2 bg-gray-300/70" />

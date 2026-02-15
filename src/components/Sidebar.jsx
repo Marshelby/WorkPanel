@@ -9,6 +9,7 @@ const links = [
   { to: "/app/cronograma", label: "Cronograma", icon: "🗓️" },
   { to: "/app/orden-barberos", label: "Orden de barberos", icon: "📋" },
   { to: "/app/contabilidad", label: "Contabilidad", icon: "💰" },
+  { to: "/app/configuracion", label: "Configuración", icon: "⚙️" },
 ];
 
 export default function Sidebar() {
@@ -27,14 +28,14 @@ export default function Sidebar() {
           <NavLink
             key={link.to}
             to={link.to}
-            end
+            end={link.to === "/app"}
             className={({ isActive }) =>
               `
               flex items-center gap-3 px-3 py-2 rounded-md
-              text-base font-medium transition
+              text-base font-medium transition-all duration-200
               ${
                 isActive
-                  ? "bg-zinc-800 text-white"
+                  ? "bg-zinc-800 text-white shadow-inner"
                   : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
               }
             `

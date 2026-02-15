@@ -12,6 +12,7 @@ import RegistrarCorte from "../pages/RegistrarCorte";
 import OrdenBarberos from "../pages/OrdenBarberos";
 import AgendaDelDia from "../pages/AgendaDelDia";
 import CronogramaBarberia from "../pages/CronogramaBarberia";
+import Configuracion from "../pages/Configuracion"; // 👈 NUEVO
 
 // públicas
 import Login from "../pages/Login";
@@ -38,6 +39,7 @@ const router = createBrowserRouter([
       { path: "contabilidad", element: <Contabilidad /> },
       { path: "registrar-corte", element: <RegistrarCorte /> },
       { path: "orden-barberos", element: <OrdenBarberos /> },
+      { path: "configuracion", element: <Configuracion /> }, // 👈 NUEVA RUTA
     ],
   },
 

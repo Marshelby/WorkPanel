@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
+import { useBarberia } from "../context/BarberiaContext";
 
 import BarberoCard from "../components/barberos/BarberoCard";
 import DetalleBarberoDia from "../components/barberos/DetalleBarberoDia";
@@ -40,6 +41,9 @@ function agruparPorFecha(cortes) {
 ========================= */
 
 export default function Barberos() {
+
+  const { barberia } = useBarberia();
+
   const [barberos, setBarberos] = useState([]);
   const [statsMap, setStatsMap] = useState({});
 
@@ -63,8 +67,9 @@ export default function Barberos() {
   });
 
   useEffect(() => {
+    if (!barberia?.id) return;
     cargarTodo();
-  }, []);
+  }, [barberia?.id]);
 
   useEffect(() => {
     function handleEsc(e) {
@@ -78,18 +83,23 @@ export default function Barberos() {
   }, [modalAbierto]);
 
   async function cargarTodo() {
+    if (!barberia?.id) return;
+
     const { data: listaBarberos } = await supabase
-      .from("barberos")
+      .from("v_barberos")
       .select("id, nombre")
+      .eq("barberia_id", barberia.id)
       .order("nombre");
 
     const { data: calculoDia } = await supabase
       .from("v_calculo_dia_barbero")
-      .select("*");
+      .select("*")
+      .eq("barberia_id", barberia.id);
 
     const { data: calculoMes } = await supabase
       .from("v_calculo_mes_barbero")
-      .select("*");
+      .select("*")
+      .eq("barberia_id", barberia.id);
 
     const mapa = {};
 
@@ -110,6 +120,8 @@ export default function Barberos() {
   }
 
   async function abrirModal(barbero) {
+    if (!barberia?.id) return;
+
     setBarberoSeleccionado(barbero);
     setTabModal("hoy");
     setModalAbierto(true);
@@ -117,6 +129,7 @@ export default function Barberos() {
     const { data: hoy } = await supabase
       .from("v_cortes_hoy")
       .select("*")
+      .eq("barberia_id", barberia.id)
       .eq("barbero_id", barbero.id)
       .order("created_at", { ascending: false });
 
@@ -125,8 +138,9 @@ export default function Barberos() {
     const { data: calculoDia } = await supabase
       .from("v_calculo_dia_barbero")
       .select("*")
+      .eq("barberia_id", barberia.id)
       .eq("barbero_id", barbero.id)
-      .single();
+      .maybeSingle();
 
     setTotalesDia({
       total_cortes: calculoDia?.total_cortes ?? 0,
@@ -137,6 +151,7 @@ export default function Barberos() {
     const { data: mes } = await supabase
       .from("v_cortes_mes_barbero")
       .select("*")
+      .eq("barberia_id", barberia.id)
       .eq("barbero_id", barbero.id)
       .order("created_at", { ascending: false });
 
@@ -145,8 +160,9 @@ export default function Barberos() {
     const { data: calculoMes } = await supabase
       .from("v_calculo_mes_barbero")
       .select("*")
+      .eq("barberia_id", barberia.id)
       .eq("barbero_id", barbero.id)
-      .single();
+      .maybeSingle();
 
     setTotalesMes({
       total_cortes: calculoMes?.total_cortes ?? 0,

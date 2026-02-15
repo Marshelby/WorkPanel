@@ -4,7 +4,7 @@ import { supabase } from "../../lib/supabase";
 import ModalEditarCorte from "./modales/ModalEditarCorte";
 import ModalEliminarCorte from "./modales/ModalEliminarCorte";
 
-export default function CortesHoy({ onActualizado }) {
+export default function CortesHoy({ onActualizado, refreshKey }) {
   const [cortes, setCortes] = useState([]);
   const [barberos, setBarberos] = useState([]);
   const [tiposCorte, setTiposCorte] = useState([]);
@@ -12,9 +12,10 @@ export default function CortesHoy({ onActualizado }) {
   const [corteEditar, setCorteEditar] = useState(null);
   const [corteEliminar, setCorteEliminar] = useState(null);
 
+  // 🔥 Ahora se recarga automáticamente cuando cambia refreshKey
   useEffect(() => {
     cargarTodo();
-  }, []);
+  }, [refreshKey]);
 
   async function cargarTodo() {
     await Promise.all([
@@ -52,14 +53,16 @@ export default function CortesHoy({ onActualizado }) {
   }
 
   function formatearHora(fecha) {
-    return new Date(fecha).toLocaleTimeString("es-CL", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  }
+  return new Date(fecha).toLocaleTimeString("es-CL", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "America/Santiago",
+  });
+}
+
 
   return (
-    <div className="bg-white border border-black p-4 rounded">
+    <div className="bg-white border border-black p-4 rounded transition-all duration-300">
       <h2 className="text-lg font-semibold pb-2 border-b border-black mb-4">
         Cortes de hoy
       </h2>
@@ -82,7 +85,7 @@ export default function CortesHoy({ onActualizado }) {
         {cortes.map((c) => (
           <div
             key={c.id}
-            className="grid grid-cols-9 text-sm py-3 border-b border-black/40 items-center"
+            className="grid grid-cols-9 text-sm py-3 border-b border-black/40 items-center animate-[fadeIn_0.3s_ease-out]"
           >
             {/* Hora */}
             <div>{formatearHora(c.created_at)}</div>
@@ -108,13 +111,13 @@ export default function CortesHoy({ onActualizado }) {
             <div className="text-right space-x-3">
               <button
                 onClick={() => setCorteEditar(c)}
-                className="underline text-zinc-700"
+                className="underline text-zinc-700 hover:text-black"
               >
                 Editar
               </button>
               <button
                 onClick={() => setCorteEliminar(c.id)}
-                className="underline text-red-600"
+                className="underline text-red-600 hover:text-red-800"
               >
                 Eliminar
               </button>
@@ -174,6 +177,15 @@ export default function CortesHoy({ onActualizado }) {
           }}
         />
       )}
+
+      <style>
+        {`
+          @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+        `}
+      </style>
     </div>
   );
 }

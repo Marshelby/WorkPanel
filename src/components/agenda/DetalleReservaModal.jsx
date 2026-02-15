@@ -26,7 +26,7 @@ export default function DetalleReservaModal({
     setLoading(true);
 
     const { error } = await supabase.rpc("rpc_gestionar_reserva", {
-      p_agenda_id: reserva.id,
+      p_agenda_id: reserva.agenda_id,
       p_accion: "estado_final",
       p_estado_final: estadoFinal,
     });
@@ -43,7 +43,7 @@ export default function DetalleReservaModal({
     setLoading(true);
 
     const { error } = await supabase.rpc("rpc_gestionar_reserva", {
-      p_agenda_id: reserva.id,
+      p_agenda_id: reserva.agenda_id,
       p_accion: "borrar",
     });
 
