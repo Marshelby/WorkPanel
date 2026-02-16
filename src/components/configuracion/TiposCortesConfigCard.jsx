@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { supabase } from "../../lib/supabase";
 import CortesModal from "./modales/CortesModal";
 
@@ -9,7 +9,10 @@ export default function TiposCortesConfigCard({
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
 
-  // 🔹 Función reutilizable para refrescar
+  /* =========================
+     FETCH
+  ========================= */
+
   const fetchCortes = useCallback(async () => {
     if (!barberiaId) return;
 
@@ -19,7 +22,7 @@ export default function TiposCortesConfigCard({
       .from("v_tipos_corte")
       .select("*")
       .eq("barberia_id", barberiaId)
-      .order("precio", { ascending: true });
+      .order("updated_at", { ascending: false });
 
     if (error) {
       console.error("Error cargando tipos de corte:", error);
@@ -31,15 +34,37 @@ export default function TiposCortesConfigCard({
     setLoading(false);
   }, [barberiaId]);
 
-  // 🔹 Cargar al montar
   useEffect(() => {
     fetchCortes();
   }, [fetchCortes]);
+
+  /* =========================
+     ÚLTIMA ACTUALIZACIÓN
+  ========================= */
+
+  const formatFecha = (fecha) => {
+    if (!fecha) return "—";
+    return new Date(fecha).toLocaleString("es-CL");
+  };
+
+  const ultimaActualizacion = useMemo(() => {
+    if (!tiposCortes.length) return null;
+
+    const fechas = tiposCortes
+      .map((c) => c.updated_at || c.created_at)
+      .filter(Boolean)
+      .map((f) => new Date(f).getTime());
+
+    if (!fechas.length) return null;
+
+    return new Date(Math.max(...fechas));
+  }, [tiposCortes]);
 
   return (
     <>
       <div
         className="
+          relative
           bg-white
           border border-zinc-200/70
           rounded-2xl
@@ -52,7 +77,15 @@ export default function TiposCortesConfigCard({
         {/* HEADER */}
         <div className="flex items-start justify-between mb-8">
           <div className="flex items-center gap-4">
-            <div className="w-11 h-11 flex items-center justify-center rounded-xl bg-zinc-100 text-xl">
+            <div
+              className="
+                w-11 h-11
+                flex items-center justify-center
+                rounded-xl
+                bg-zinc-100
+                text-xl
+              "
+            >
               ✂️
             </div>
 
@@ -60,9 +93,15 @@ export default function TiposCortesConfigCard({
               <h2 className="text-xl font-semibold text-zinc-900">
                 Tipos de cortes
               </h2>
-              <p className="text-sm text-zinc-500 mt-1">
-                Servicios activos configurados en tu barbería
-              </p>
+
+              {ultimaActualizacion && (
+                <p className="text-sm text-zinc-500 mt-1">
+                  Última actualización:{" "}
+                  <span className="font-medium text-zinc-700">
+                    {formatFecha(ultimaActualizacion)}
+                  </span>
+                </p>
+              )}
             </div>
           </div>
 
@@ -81,7 +120,7 @@ export default function TiposCortesConfigCard({
               font-medium
             "
           >
-            ✏️ Haz click para hacer un cambio
+            ✏️  Haz click para hacer un cambio
           </button>
         </div>
 
@@ -123,7 +162,7 @@ export default function TiposCortesConfigCard({
                     font-semibold
                   "
                 >
-                  ${Number(corte.precio || 0).toLocaleString()}
+                  ${Number(corte.precio || 0).toLocaleString("es-CL")}
                 </div>
               </div>
             ))}
@@ -133,12 +172,15 @@ export default function TiposCortesConfigCard({
         {/* FOOTER */}
         <div
           className="
-            mt-8 pt-6
+            mt-10 pt-6
             border-t border-zinc-200/60
             text-sm text-zinc-500
           "
         >
-          Puedes editar, agregar o desactivar servicios desde el botón superior.
+          Estos servicios son administrados por el sistema.
+          <span className="font-medium text-zinc-700 ml-1">
+            Si necesitas modificarlos, puedes solicitar un cambio.
+          </span>
         </div>
       </div>
 
@@ -148,7 +190,7 @@ export default function TiposCortesConfigCard({
         onClose={() => setModalOpen(false)}
         cortes={tiposCortes}
         barberiaId={barberiaId}
-        onUpdated={fetchCortes}   // 🔥 REFRESH AUTOMÁTICO
+        onUpdated={fetchCortes}
       />
     </>
   );

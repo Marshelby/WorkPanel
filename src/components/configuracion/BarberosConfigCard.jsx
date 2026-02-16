@@ -18,7 +18,6 @@ export default function BarberosConfigCard({ barberiaId }) {
 
     setLoading(true);
 
-    // ACTIVOS
     const { data: activos, error: errorActivos } = await supabase
       .from("v_barberos")
       .select("*")
@@ -26,7 +25,6 @@ export default function BarberosConfigCard({ barberiaId }) {
       .eq("activo", true)
       .order("nombre", { ascending: true });
 
-    // DESACTIVADOS
     const { data: inactivos, error: errorInactivos } = await supabase
       .from("v_barberos_off")
       .select("*")
@@ -50,6 +48,31 @@ export default function BarberosConfigCard({ barberiaId }) {
   }, [barberiaId]);
 
   /* =========================
+     ÚLTIMA ACTUALIZACIÓN
+  ========================= */
+
+  const formatFecha = (fecha) => {
+    if (!fecha) return null;
+    return new Date(fecha).toLocaleString("es-CL");
+  };
+
+  const obtenerUltimaActualizacion = () => {
+    const todos = [...barberos, ...barberosOff];
+    if (!todos.length) return null;
+
+    const fechas = todos
+      .map((b) => b.updated_at)
+      .filter(Boolean)
+      .map((f) => new Date(f).getTime());
+
+    if (!fechas.length) return null;
+
+    return new Date(Math.max(...fechas));
+  };
+
+  const ultimaActualizacion = obtenerUltimaActualizacion();
+
+  /* =========================
      TOAST SUCCESS GLOBAL
   ========================= */
 
@@ -57,10 +80,6 @@ export default function BarberosConfigCard({ barberiaId }) {
     setSuccessMsg(mensaje);
     setTimeout(() => setSuccessMsg(""), 2500);
   };
-
-  /* =========================
-     ACCIÓN EXITOSA DESDE MODAL
-  ========================= */
 
   const handleSuccess = async (mensaje = "Cambio realizado correctamente.") => {
     await fetchBarberos();
@@ -89,9 +108,22 @@ export default function BarberosConfigCard({ barberiaId }) {
               <h2 className="text-xl font-semibold text-zinc-900">
                 Barberos
               </h2>
-              <p className="text-sm text-zinc-500 mt-1">
-                Barberos activos registrados en tu Panel
-              </p>
+
+              {/* 👇 SOLO ESTO SE AGREGÓ */}
+              {ultimaActualizacion && (
+                <p className="text-sm text-zinc-500 mt-1">
+                  Última modificación:{" "}
+                  <span className="font-medium text-zinc-700">
+                    {formatFecha(ultimaActualizacion)}
+                  </span>
+                </p>
+              )}
+
+              {!ultimaActualizacion && (
+                <p className="text-sm text-zinc-500 mt-1">
+                  Barberos activos registrados en tu Panel
+                </p>
+              )}
             </div>
           </div>
 
@@ -137,7 +169,6 @@ export default function BarberosConfigCard({ barberiaId }) {
         </div>
       </div>
 
-      {/* MODAL */}
       <BarberosModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}

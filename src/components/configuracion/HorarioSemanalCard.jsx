@@ -22,13 +22,8 @@ export default function HorarioSemanalCard({
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
 
-  // JS: 0=Domingo ... 6=Sábado
   const hoyJS = new Date().getDay();
   const hoyDB = hoyJS === 0 ? 7 : hoyJS;
-
-  /* =========================
-     FUNCIÓN REFRESCAR (CLAVE)
-  ========================= */
 
   const refrescarHorarios = useCallback(async () => {
     if (!barberiaId) return;
@@ -48,10 +43,6 @@ export default function HorarioSemanalCard({
 
   }, [barberiaId]);
 
-  /* =========================
-     CARGA INICIAL
-  ========================= */
-
   useEffect(() => {
     refrescarHorarios();
   }, [refrescarHorarios]);
@@ -60,6 +51,33 @@ export default function HorarioSemanalCard({
     if (!hora) return null;
     return hora.slice(0, 5);
   };
+
+  /* =========================
+     🔥 CORRECCIÓN: ÚLTIMA ACTUALIZACIÓN
+  ========================= */
+
+  const formatearFecha = (fecha) => {
+    if (!fecha) return null;
+    return new Date(fecha).toLocaleString("es-CL");
+  };
+
+  const obtenerUltimaActualizacion = () => {
+    if (!horarios.length) return null;
+
+    const fechasValidas = horarios
+      .map((h) => {
+        if (!h.updated_at) return null;
+        const fecha = new Date(h.updated_at);
+        return isNaN(fecha.getTime()) ? null : fecha.getTime();
+      })
+      .filter(Boolean);
+
+    if (!fechasValidas.length) return null;
+
+    return new Date(Math.max(...fechasValidas));
+  };
+
+  const ultimaActualizacion = obtenerUltimaActualizacion();
 
   return (
     <>
@@ -75,9 +93,19 @@ export default function HorarioSemanalCard({
               <h2 className="text-xl font-semibold text-zinc-900">
                 Horario semanal
               </h2>
-              <p className="text-sm text-zinc-500 mt-1">
-                Configuración actual de apertura y cierre
-              </p>
+
+              {ultimaActualizacion ? (
+                <p className="text-sm text-zinc-500 mt-1">
+                  Última modificación:{" "}
+                  <span className="font-medium text-zinc-700">
+                    {formatearFecha(ultimaActualizacion)}
+                  </span>
+                </p>
+              ) : (
+                <p className="text-sm text-zinc-500 mt-1">
+                  Configuración actual de apertura y cierre
+                </p>
+              )}
             </div>
           </div>
 
@@ -169,12 +197,11 @@ export default function HorarioSemanalCard({
         </div>
       </div>
 
-      {/* MODAL */}
       <HorarioSemanalModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         barberiaId={barberiaId}
-        onUpdated={refrescarHorarios}   // 🔥 ESTA ES LA CLAVE
+        onUpdated={refrescarHorarios}
       />
     </>
   );

@@ -7,7 +7,6 @@ import InformacionNegocio from "../components/configuracion/InformacionNegocio";
 import BarberosConfigCard from "../components/configuracion/BarberosConfigCard";
 import TiposCortesConfigCard from "../components/configuracion/TiposCortesConfigCard";
 import HorarioSemanalCard from "../components/configuracion/HorarioSemanalCard";
-import SolicitarCambioCard from "../components/configuracion/SolicitarCambioCard";
 
 export default function Configuracion() {
 
@@ -34,39 +33,36 @@ export default function Configuracion() {
 
       {/* HEADER */}
       <ConfiguracionHeader
-        nombreEmpresa={barberia.nombre}
-        estadoPlan="Plan Activo"
-        ultimaActualizacion="13/02/2026"
+        nombreEmpresa={barberia?.nombre}
+        plan={barberia?.plan}
+        estadoPlan="Activo"
+        fechaPago={barberia?.fecha_pago}
       />
 
       {/* GRID PRINCIPAL */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
 
+        {/* INFORMACIÓN NEGOCIO */}
         <InformacionNegocio
-          nombre={barberia.nombre}
-          telefono={barberia.telefono_admin}
-          ubicacion={barberia.ubicacion}
+          barberiaId={barberia.id}
         />
 
+        {/* BARBEROS */}
         <BarberosConfigCard
           barberiaId={barberia.id}
         />
 
+        {/* TIPOS DE CORTES */}
         <TiposCortesConfigCard
           barberiaId={barberia.id}
         />
 
+        {/* HORARIO SEMANAL */}
         <HorarioSemanalCard
           barberiaId={barberia.id}
         />
 
       </div>
-
-      {/* CTA FINAL */}
-      <SolicitarCambioCard
-        nombreEmpresa={barberia.nombre}
-        telefonoSoporte="+56900000000"
-      />
 
     </div>
   );

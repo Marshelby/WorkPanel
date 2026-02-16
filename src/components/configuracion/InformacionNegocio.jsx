@@ -1,13 +1,54 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { supabase } from "../../lib/supabase";
 import InfoNegocioModal from "./modales/InfoNegocioModal";
 
-export default function InformacionNegocio({
-  barberiaId,
-  nombre = "PeladoClean Barbershop",
-  telefono = "+56 9 1234 5678",
-  ubicacion = "Quilpué, Chile",
-}) {
+export default function InformacionNegocio({ barberiaId }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
+  const [successMsg, setSuccessMsg] = useState("");
+
+  const fetchBarberia = async () => {
+    if (!barberiaId) return;
+
+    setLoading(true);
+
+    const { data, error } = await supabase
+      .from("v_barberias")
+      .select("*")
+      .eq("id", barberiaId)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error cargando barbería:", error);
+      setData(null);
+    } else {
+      setData(data);
+    }
+
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchBarberia();
+  }, [barberiaId]);
+
+  const mostrarSuccess = (mensaje) => {
+    setSuccessMsg(mensaje);
+    setTimeout(() => setSuccessMsg(""), 2500);
+  };
+
+  const handleSuccess = async (mensaje = "Cambio realizado correctamente.") => {
+    await fetchBarberia();
+    mostrarSuccess(mensaje);
+  };
+
+  const formatFecha = (fecha) => {
+    if (!fecha) return "—";
+    return new Date(fecha).toLocaleString("es-CL");
+  };
+
+  if (!data && !loading) return null;
 
   return (
     <>
@@ -23,6 +64,13 @@ export default function InformacionNegocio({
           transition-all duration-200
         "
       >
+        {/* TOAST */}
+        {successMsg && (
+          <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-green-600 text-white text-sm px-4 py-2 rounded-lg shadow-lg animate-fadeIn">
+            {successMsg}
+          </div>
+        )}
+
         {/* HEADER */}
         <div className="flex items-start justify-between mb-8">
           <div className="flex items-center gap-4">
@@ -42,13 +90,17 @@ export default function InformacionNegocio({
               <h2 className="text-xl font-semibold text-zinc-900">
                 Información del negocio
               </h2>
+
+              {/* 👇 SOLO ESTO SE AGREGÓ */}
               <p className="text-sm text-zinc-500 mt-1">
-                Datos generales registrados en tu Panel
+                Última actualización:{" "}
+                <span className="font-medium text-zinc-700">
+                  {formatFecha(data?.updated_at)}
+                </span>
               </p>
             </div>
           </div>
 
-          {/* BOTÓN SOLICITAR CAMBIO */}
           <button
             onClick={() => setModalOpen(true)}
             className="
@@ -64,41 +116,65 @@ export default function InformacionNegocio({
               font-medium
             "
           >
-            ✏️ Solicitar cambio
+            ✏️  Haz click para hacer un cambio
           </button>
         </div>
 
-        {/* GRID INFO */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-10">
-          <div className="space-y-3">
-            <div className="text-xs uppercase tracking-wider text-zinc-400 font-semibold">
-              Nombre empresa
+        {/* GRID INFO (MISMO QUE TENÍAS) */}
+        {loading ? (
+          <div className="text-sm text-zinc-500">
+            Cargando información...
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-10">
+            <div className="space-y-3">
+              <div className="text-xs uppercase tracking-wider text-zinc-400 font-semibold">
+                Nombre empresa
+              </div>
+              <div className="text-lg font-semibold text-zinc-900 tracking-tight">
+                {data?.nombre}
+              </div>
             </div>
-            <div className="text-lg font-semibold text-zinc-900 tracking-tight">
-              {nombre}
+
+            <div className="space-y-3">
+              <div className="text-xs uppercase tracking-wider text-zinc-400 font-semibold">
+                Teléfono administrador
+              </div>
+              <div className="text-lg font-semibold text-zinc-900 tracking-tight">
+                {data?.whatsapp_principal}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="text-xs uppercase tracking-wider text-zinc-400 font-semibold">
+                Plan
+              </div>
+              <div className="text-lg font-semibold text-zinc-900 tracking-tight capitalize">
+                {data?.plan}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="text-xs uppercase tracking-wider text-zinc-400 font-semibold">
+                Bloques agenda
+              </div>
+              <div className="text-lg font-semibold text-zinc-900 tracking-tight">
+                {data?.bloques_agenda} min
+              </div>
+            </div>
+
+            <div className="space-y-3 sm:col-span-3">
+              <div className="text-xs uppercase tracking-wider text-zinc-400 font-semibold">
+                Ubicación
+              </div>
+              <div className="text-lg font-semibold text-zinc-900 tracking-tight">
+                {data?.ubicacion}
+              </div>
             </div>
           </div>
+        )}
 
-          <div className="space-y-3">
-            <div className="text-xs uppercase tracking-wider text-zinc-400 font-semibold">
-              Teléfono administrador
-            </div>
-            <div className="text-lg font-semibold text-zinc-900 tracking-tight">
-              {telefono}
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <div className="text-xs uppercase tracking-wider text-zinc-400 font-semibold">
-              Ubicación
-            </div>
-            <div className="text-lg font-semibold text-zinc-900 tracking-tight">
-              {ubicacion}
-            </div>
-          </div>
-        </div>
-
-        {/* FOOTER */}
+        {/* FOOTER (IGUAL) */}
         <div
           className="
             mt-10 pt-6
@@ -118,9 +194,8 @@ export default function InformacionNegocio({
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         barberiaId={barberiaId}
-        nombreActual={nombre}
-        telefonoActual={telefono}
-        ubicacionActual={ubicacion}
+        dataActual={data}
+        onSuccess={handleSuccess}
       />
     </>
   );
