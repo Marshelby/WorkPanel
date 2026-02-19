@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { useNavigate } from "react-router-dom";
 
@@ -9,6 +9,17 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data?.session) {
+        navigate("/app", { replace: true });
+      }
+    };
+    checkSession();
+  }, [navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -20,54 +31,132 @@ export default function Login() {
       password,
     });
 
+    setLoading(false);
+
     if (error) {
-      setError("Credenciales incorrectas");
-      setLoading(false);
+      setError(error.message);
       return;
     }
 
-    navigate("/app");
+    setSuccess(true);
+
+    setTimeout(() => {
+      navigate("/app", { replace: true });
+    }, 1600);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-zinc-100">
-      <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-sm border border-zinc-200">
-        <h2 className="text-2xl font-semibold mb-6 text-center">
-          Work<span className="text-zinc-500">Panel</span>
-        </h2>
+    <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-zinc-950 via-zinc-900 to-black overflow-hidden">
 
-        <form onSubmit={handleLogin} className="space-y-4">
-          <input
-            type="email"
-            placeholder="Correo"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="w-full border border-zinc-300 rounded-md px-3 py-2"
-          />
+      {/* Glow fondo azul */}
+      <div className="absolute -top-40 -left-40 w-[400px] h-[400px] bg-blue-500/20 rounded-full blur-[120px]" />
+      <div className="absolute -bottom-40 -right-40 w-[400px] h-[400px] bg-cyan-500/20 rounded-full blur-[120px]" />
 
-          <input
-            type="password"
-            placeholder="Contraseña"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="w-full border border-zinc-300 rounded-md px-3 py-2"
-          />
+      {/* Card */}
+      <div className="relative w-full max-w-md backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-10 shadow-2xl transition-all duration-500 hover:border-blue-400/40 hover:shadow-[0_0_40px_rgba(59,130,246,0.25)]">
 
-          {error && (
-            <p className="text-sm text-red-500">{error}</p>
-          )}
+        <h1 className="text-3xl font-black text-white tracking-tight">
+          Bienvenido a <span className="text-blue-400">WorkPanel</span>
+        </h1>
+
+        <p className="text-zinc-400 mt-2 mb-8">
+          Accede a tu panel administrativo
+        </p>
+
+        <form onSubmit={handleLogin} className="space-y-6">
+
+          <div>
+            <label className="text-xs uppercase tracking-wider text-zinc-400">
+              Correo
+            </label>
+            <input
+              type="email"
+              placeholder="correo@empresa.cl"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="mt-2 w-full rounded-xl bg-zinc-900/60 border border-white/10 px-4 py-3 text-white focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 transition"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs uppercase tracking-wider text-zinc-400">
+              Contraseña
+            </label>
+            <input
+              type="password"
+              placeholder="********"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="mt-2 w-full rounded-xl bg-zinc-900/60 border border-white/10 px-4 py-3 text-white focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 transition"
+            />
+          </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-zinc-900 text-white py-2 rounded-md hover:bg-zinc-800 transition"
+            className="w-full rounded-xl bg-blue-500 hover:bg-blue-400 text-black font-bold py-3 transition-all duration-300 shadow-lg hover:shadow-[0_0_20px_rgba(59,130,246,0.6)] disabled:opacity-50"
           >
-            {loading ? "Ingresando..." : "Ingresar"}
+            {loading ? "Ingresando..." : "Ingresar al Panel"}
           </button>
+
+          <button
+            type="button"
+            onClick={() => navigate("/forgot-password")}
+            className="w-full text-zinc-500 hover:text-blue-400 text-sm transition-colors"
+          >
+            ¿Olvidaste tu contraseña?
+          </button>
+
+          {error && (
+            <p className="text-red-400 text-sm text-center">
+              {error}
+            </p>
+          )}
         </form>
       </div>
+
+      {/* Overlay premium */}
+      {success && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-xl flex items-center justify-center z-50 animate-fadeIn">
+
+          <div className="absolute w-[500px] h-[500px] bg-blue-500/20 rounded-full blur-[150px]" />
+
+          <div className="relative text-center animate-scaleIn">
+            <h2 className="text-4xl font-black text-blue-400 drop-shadow-[0_0_15px_rgba(59,130,246,0.9)]">
+              Bienvenido Administrador
+            </h2>
+            <p className="text-zinc-300 mt-4 text-lg">
+              Inicializando sistema...
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Animaciones */}
+      <style>
+        {`
+          .animate-fadeIn {
+            animation: fadeIn 0.4s ease-out forwards;
+          }
+
+          .animate-scaleIn {
+            animation: scaleIn 0.5s ease-out forwards;
+          }
+
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+
+          @keyframes scaleIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+          }
+        `}
+      </style>
+
     </div>
   );
 }

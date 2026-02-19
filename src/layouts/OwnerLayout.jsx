@@ -13,7 +13,6 @@ export default function OwnerLayout() {
         data: { session },
       } = await supabase.auth.getSession();
 
-      // 🚫 Si no hay sesión → fuera
       if (!session) {
         navigate("/", { replace: true });
       }
@@ -21,7 +20,6 @@ export default function OwnerLayout() {
 
     checkSession();
 
-    // Escuchar logout en tiempo real
     const { data: listener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         if (!session) {
@@ -36,19 +34,40 @@ export default function OwnerLayout() {
   }, [navigate]);
 
   return (
-    <div className="h-screen flex bg-zinc-100 text-zinc-900 overflow-hidden">
+    <div className="h-screen flex bg-gradient-to-br from-zinc-950 via-zinc-900 to-black text-zinc-100 overflow-hidden">
+
+      {/* SIDEBAR */}
       <aside className="flex-shrink-0 h-full">
         <Sidebar />
       </aside>
 
+      {/* CONTENIDO */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="flex-shrink-0">
+
+        {/* HEADER */}
+        <header className="flex-shrink-0 border-b border-white/10 backdrop-blur bg-black/40">
           <Header />
         </header>
 
+        {/* MAIN */}
         <main className="flex-1 overflow-y-auto p-6">
-          <Outlet />
+
+          <div
+            className="
+              relative
+              rounded-2xl
+              border border-white/10
+              bg-white/[0.04]
+              backdrop-blur-md
+              shadow-[inset_0_0_40px_rgba(255,255,255,0.02)]
+              p-6
+            "
+          >
+            <Outlet />
+          </div>
+
         </main>
+
       </div>
     </div>
   );

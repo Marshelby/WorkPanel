@@ -8,22 +8,26 @@ export default function InformacionEmpresa() {
   if (!empresa) return null;
 
   return (
-    <div className="bg-white border border-black rounded-xl p-6 space-y-6">
+    <div className="bg-white/5 border border-white/10 backdrop-blur-xl rounded-2xl p-8 space-y-8 shadow-xl">
 
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">
+        <h3 className="text-xl font-semibold tracking-tight text-zinc-100">
           Información de la empresa
         </h3>
 
         <button
           onClick={() => setEditando(!editando)}
-          className="text-sm px-3 py-1 rounded-md bg-zinc-900 text-white hover:bg-zinc-800 transition"
+          className="text-xs px-4 py-2 rounded-full 
+                     bg-emerald-500/15 text-emerald-400 
+                     border border-emerald-500/30 
+                     hover:bg-emerald-500/25 
+                     transition-all duration-200 backdrop-blur"
         >
           {editando ? "Cancelar" : "Editar"}
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-sm">
 
         <Info label="Nombre empresa" value={empresa.nombre_empresa} />
         <Info label="Dirección" value={empresa.direccion} />
@@ -47,11 +51,11 @@ export default function InformacionEmpresa() {
 
 function Info({ label, value }) {
   return (
-    <div>
-      <p className="text-zinc-500 text-xs uppercase tracking-wide">
+    <div className="space-y-1">
+      <p className="text-[11px] uppercase tracking-wider text-zinc-500">
         {label}
       </p>
-      <p className="text-zinc-800 font-medium mt-1">
+      <p className="text-zinc-200 font-medium text-base">
         {value || "-"}
       </p>
     </div>

@@ -1,59 +1,88 @@
 export default function ResumenVentas({ resumen }) {
+  const promedioDia =
+    resumen.ventasDia > 0
+      ? Math.round(resumen.totalDia / resumen.ventasDia)
+      : 0;
+
+  const promedioMes =
+    resumen.ventasMes > 0
+      ? Math.round(resumen.totalMes / resumen.ventasMes)
+      : 0;
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
 
-      {/* TOTAL DÍA */}
-      <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-6">
-        <p className="text-xs uppercase tracking-wide text-zinc-400 mb-2">
-          Ventas del día
-        </p>
-        <h2 className="text-2xl font-bold text-zinc-900">
-          ${resumen.totalDia.toLocaleString("es-CL")}
-        </h2>
-        <p className="text-sm text-zinc-500 mt-1">
-          {resumen.ventasDia} ventas registradas
-        </p>
-      </div>
+      {/* VENTAS DÍA */}
+      <CardKPI
+        titulo="Ventas del día"
+        valor={`$${resumen.totalDia.toLocaleString("es-CL")}`}
+        subtitulo={`${resumen.ventasDia} ventas registradas`}
+        color="emerald"
+      />
 
-      {/* TOTAL MES */}
-      <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-6">
-        <p className="text-xs uppercase tracking-wide text-zinc-400 mb-2">
-          Ventas del mes
-        </p>
-        <h2 className="text-2xl font-bold text-zinc-900">
-          ${resumen.totalMes.toLocaleString("es-CL")}
-        </h2>
-        <p className="text-sm text-zinc-500 mt-1">
-          {resumen.ventasMes} ventas registradas
-        </p>
-      </div>
+      {/* VENTAS MES */}
+      <CardKPI
+        titulo="Ventas del mes"
+        valor={`$${resumen.totalMes.toLocaleString("es-CL")}`}
+        subtitulo={`${resumen.ventasMes} ventas registradas`}
+        color="blue"
+      />
 
       {/* PROMEDIO DÍA */}
-      <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-6">
-        <p className="text-xs uppercase tracking-wide text-zinc-400 mb-2">
-          Ticket promedio día
-        </p>
-        <h2 className="text-2xl font-bold text-zinc-900">
-          $
-          {resumen.ventasDia > 0
-            ? Math.round(resumen.totalDia / resumen.ventasDia).toLocaleString("es-CL")
-            : 0}
-        </h2>
-      </div>
+      <CardKPI
+        titulo="Ticket promedio día"
+        valor={`$${promedioDia.toLocaleString("es-CL")}`}
+        color="purple"
+      />
 
       {/* PROMEDIO MES */}
-      <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-6">
-        <p className="text-xs uppercase tracking-wide text-zinc-400 mb-2">
-          Ticket promedio mes
-        </p>
-        <h2 className="text-2xl font-bold text-zinc-900">
-          $
-          {resumen.ventasMes > 0
-            ? Math.round(resumen.totalMes / resumen.ventasMes).toLocaleString("es-CL")
-            : 0}
-        </h2>
-      </div>
+      <CardKPI
+        titulo="Ticket promedio mes"
+        valor={`$${promedioMes.toLocaleString("es-CL")}`}
+        color="cyan"
+      />
 
+    </div>
+  );
+}
+
+
+/* 🔥 Card reutilizable */
+function CardKPI({ titulo, valor, subtitulo, color }) {
+  const colores = {
+    emerald:
+      "from-emerald-500/20 to-emerald-500/5 text-emerald-400 border-emerald-500/20 shadow-emerald-500/10",
+    blue:
+      "from-blue-500/20 to-blue-500/5 text-blue-400 border-blue-500/20 shadow-blue-500/10",
+    purple:
+      "from-purple-500/20 to-purple-500/5 text-purple-400 border-purple-500/20 shadow-purple-500/10",
+    cyan:
+      "from-cyan-500/20 to-cyan-500/5 text-cyan-400 border-cyan-500/20 shadow-cyan-500/10",
+  };
+
+  const estilo = colores[color] || colores.blue;
+
+  return (
+    <div
+      className={`
+        relative rounded-2xl p-6 border backdrop-blur-xl
+        bg-gradient-to-br ${estilo}
+        shadow-xl transition-all duration-300 hover:scale-[1.03]
+      `}
+    >
+      <p className="text-xs uppercase tracking-[0.3em] text-zinc-500 mb-3">
+        {titulo}
+      </p>
+
+      <h2 className="text-3xl font-bold tracking-tight">
+        {valor}
+      </h2>
+
+      {subtitulo && (
+        <p className="text-sm text-zinc-400 mt-3">
+          {subtitulo}
+        </p>
+      )}
     </div>
   );
 }
