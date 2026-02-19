@@ -4,19 +4,15 @@ import { createBrowserRouter } from "react-router-dom";
 import OwnerLayout from "../layouts/OwnerLayout";
 
 // páginas privadas
-import Dashboard from "../pages/Dashboard";
-import Barberos from "../pages/Barberos";
-import HorariosBarberos from "../pages/HorariosBarberos";
+import Inicio from "../pages/Inicio";
+import RegistrarVenta from "../pages/RegistrarVenta";
+import Bodega from "../pages/Bodega";
+import EditarBodega from "../pages/EditarBodega";
 import Contabilidad from "../pages/Contabilidad";
-import RegistrarCorte from "../pages/RegistrarCorte";
-import OrdenBarberos from "../pages/OrdenBarberos";
-import AgendaDelDia from "../pages/AgendaDelDia";
-import CronogramaBarberia from "../pages/CronogramaBarberia";
-import Configuracion from "../pages/Configuracion"; // 👈 NUEVO
+import Configuracion from "../pages/Configuracion";
 
 // públicas
 import Login from "../pages/Login";
-import EstadoPublico from "../pages/EstadoPublico";
 
 const router = createBrowserRouter([
   // 🔓 LOGIN
@@ -30,23 +26,14 @@ const router = createBrowserRouter([
     path: "/app",
     element: <OwnerLayout />,
     children: [
-      { index: true, element: <Dashboard /> },
-      { path: "dashboard", element: <Dashboard /> },
-      { path: "barberos", element: <Barberos /> },
-      { path: "horarios-barberos", element: <HorariosBarberos /> },
-      { path: "agenda-del-dia", element: <AgendaDelDia /> },
-      { path: "cronograma", element: <CronogramaBarberia /> },
+      { index: true, element: <Inicio /> },
+      { path: "inicio", element: <Inicio /> },
+      { path: "registrar-venta", element: <RegistrarVenta /> },
+      { path: "bodega", element: <Bodega /> },
+      { path: "editar-bodega", element: <EditarBodega /> },
       { path: "contabilidad", element: <Contabilidad /> },
-      { path: "registrar-corte", element: <RegistrarCorte /> },
-      { path: "orden-barberos", element: <OrdenBarberos /> },
-      { path: "configuracion", element: <Configuracion /> }, // 👈 NUEVA RUTA
+      { path: "configuracion", element: <Configuracion /> },
     ],
-  },
-
-  // 🌍 ESTADO PÚBLICO
-  {
-    path: "/estado-barberia",
-    element: <EstadoPublico />,
   },
 ]);
 

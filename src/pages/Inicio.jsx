@@ -1,10 +1,12 @@
 import React from "react";
 import { useWork } from "../context/WorkContext";
 
+// Componentes
 import ConfiguracionHeader from "../components/configuracion/ConfiguracionHeader";
 import InformacionEmpresa from "../components/configuracion/InformacionEmpresa";
 
 export default function Configuracion() {
+
   const { empresa, loading } = useWork();
 
   if (loading) {
@@ -25,16 +27,22 @@ export default function Configuracion() {
 
   return (
     <div className="space-y-8">
+
+      {/* HEADER */}
       <ConfiguracionHeader
         nombreEmpresa={empresa?.nombre_empresa}
-        plan={empresa?.plan}
-        estadoPlan={empresa?.estado_plan}
-        fechaPago={empresa?.fecha_pago}
       />
 
+      {/* GRID PRINCIPAL */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-        <InformacionEmpresa empresaId={empresa.id} />
+
+        {/* INFORMACIÓN EMPRESA */}
+        <InformacionEmpresa
+          empresaId={empresa.id}
+        />
+
       </div>
+
     </div>
   );
 }

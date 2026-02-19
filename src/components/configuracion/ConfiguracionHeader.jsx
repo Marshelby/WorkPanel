@@ -1,13 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 
-import PlanBasicoInfo from "./planes/PlanBasicoInfo";
-import PlanPremiumInfo from "./planes/PlanPremiumInfo";
-import PlanProfesionalInfo from "./planes/PlanProfesionalInfo";
-
 export default function ConfiguracionHeader({
   nombreEmpresa = "",
-  plan = "",
+  plan = "basico",
   estadoPlan = "Activo",
   fechaPago,
   telefonoSoporte = "+56989843031",
@@ -15,22 +11,11 @@ export default function ConfiguracionHeader({
   const [planSeleccionado, setPlanSeleccionado] = useState(null);
 
   /* =============================
-     NORMALIZADOR REAL
+     NORMALIZADOR
   ==============================*/
   const normalizarPlan = (valor) => {
-    if (!valor) return "";
-
-    const limpio = valor
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .trim();
-
-    if (limpio === "basic" || limpio === "basico") return "basico";
-    if (limpio === "premium") return "premium";
-    if (limpio === "profesional" || limpio === "pro") return "profesional";
-
-    return limpio;
+    if (!valor) return "basico";
+    return valor.toLowerCase().trim();
   };
 
   const planNormalizado = normalizarPlan(plan);
@@ -46,7 +31,7 @@ export default function ConfiguracionHeader({
   }, [planSeleccionado]);
 
   /* =============================
-     ESCAPE
+     ESC
   ==============================*/
   useEffect(() => {
     const handleEsc = (e) => {
@@ -56,58 +41,36 @@ export default function ConfiguracionHeader({
     return () => window.removeEventListener("keydown", handleEsc);
   }, []);
 
-  /* =============================
-     MODAL PORTAL
-  ==============================*/
+  const cerrar = () => setPlanSeleccionado(null);
+
   const renderModal = () => {
     if (!planSeleccionado) return null;
-
-    const cerrar = () => setPlanSeleccionado(null);
 
     return createPortal(
       <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-md">
         <div className="absolute inset-0" onClick={cerrar} />
 
-        <div className="relative bg-white w-[780px] max-w-[95%] rounded-2xl shadow-2xl p-10 max-h-[85vh] overflow-y-auto">
+        <div className="relative bg-white w-[600px] max-w-[95%] rounded-2xl shadow-2xl p-10">
           <button
             onClick={cerrar}
-            className="absolute top-5 right-6 text-zinc-400 hover:text-black text-xl transition-colors"
+            className="absolute top-5 right-6 text-zinc-400 hover:text-black text-xl"
           >
             ✕
           </button>
 
-          {planSeleccionado === "basico" && (
-            <PlanBasicoInfo
-              nombreEmpresa={nombreEmpresa}
-              planActual={planNormalizado}
-              telefonoSoporte={telefonoSoporte}
-            />
-          )}
+          <h2 className="text-2xl font-bold mb-4">
+            Plan {planSeleccionado}
+          </h2>
 
-          {planSeleccionado === "premium" && (
-            <PlanPremiumInfo
-              nombreEmpresa={nombreEmpresa}
-              planActual={planNormalizado}
-              telefonoSoporte={telefonoSoporte}
-            />
-          )}
-
-          {planSeleccionado === "profesional" && (
-            <PlanProfesionalInfo
-              nombreEmpresa={nombreEmpresa}
-              planActual={planNormalizado}
-              telefonoSoporte={telefonoSoporte}
-            />
-          )}
+          <p className="text-zinc-600">
+            Para cambiar tu plan comunícate con soporte al {telefonoSoporte}.
+          </p>
         </div>
       </div>,
       document.body
     );
   };
 
-  /* =============================
-     PLAN CARD
-  ==============================*/
   const renderPlan = (tipo, label) => {
     const activo = planNormalizado === tipo;
 
@@ -115,9 +78,8 @@ export default function ConfiguracionHeader({
       <div
         onClick={() => setPlanSeleccionado(tipo)}
         className={`
-          relative cursor-pointer border rounded-xl px-6 py-5 flex items-center justify-between
-          transition-all duration-300 transform
-          hover:scale-105 hover:shadow-2xl
+          relative cursor-pointer border rounded-xl px-6 py-4 flex items-center justify-between
+          transition-all duration-300 hover:scale-105
           ${
             activo
               ? "ring-2 ring-black shadow-xl scale-105"
@@ -125,26 +87,7 @@ export default function ConfiguracionHeader({
           }
         `}
       >
-        <div className="flex items-center gap-4 font-semibold text-lg">
-          {tipo === "profesional" ? (
-            <span className="text-xl">👑</span>
-          ) : (
-            <span
-              className={`w-4 h-4 rounded-full ${
-                tipo === "premium"
-                  ? "bg-blue-500"
-                  : "bg-green-500"
-              }`}
-            />
-          )}
-          {label}
-        </div>
-
-        {tipo === "profesional" && (
-          <span className="text-xs bg-black text-white px-3 py-1 rounded-full shadow-md">
-            RECOMENDADO
-          </span>
-        )}
+        <div className="font-semibold text-lg">{label}</div>
 
         {activo && (
           <span className="absolute top-2 right-3 text-xs bg-green-600 text-white px-2 py-1 rounded-full">
@@ -155,69 +98,63 @@ export default function ConfiguracionHeader({
     );
   };
 
-  /* =============================
-     HEADER
-  ==============================*/
   return (
     <>
-      <div className="rounded-2xl border border-zinc-200 bg-white p-12 shadow-sm">
-        <div className="flex flex-col lg:flex-row justify-between gap-16">
+      <div className="rounded-2xl border border-zinc-200 bg-white p-10 shadow-sm">
+        <div className="flex flex-col lg:flex-row justify-between gap-12">
 
-          <div className="space-y-8 max-w-3xl">
+          {/* IZQUIERDA */}
+          <div className="space-y-6 max-w-3xl">
             <h1 className="text-4xl font-bold text-zinc-900">
               Configuración
             </h1>
 
             <p className="text-lg text-zinc-700">
-              Desde aquí puedes administrar tu barbería y gestionar tu plan.
+              Desde aquí puedes administrar tu empresa y gestionar tu plan.
             </p>
 
-            <div className="text-base text-zinc-600 space-y-3">
+            <div className="text-base text-zinc-600 space-y-2">
               <div>
-                📅 La fecha de pago está establecida para los{" "}
-                <span className="font-semibold text-black text-lg">
-                  {fechaPago ?? "-"}
-                </span>{" "}
-                de cada mes.
+                📅 Fecha de pago:{" "}
+                <span className="font-semibold text-black">
+                  {fechaPago ?? "-"} de cada mes
+                </span>
               </div>
 
               <div>
-                📲 Para solicitar un cambio de plan contáctanos al:{" "}
-                <span className="font-semibold text-black text-lg">
+                📲 Soporte:{" "}
+                <span className="font-semibold text-black">
                   {telefonoSoporte}
                 </span>
               </div>
             </div>
 
-            <div className="pt-8 border-t border-zinc-200">
+            <div className="pt-6 border-t border-zinc-200">
               <div className="text-3xl font-extrabold text-black">
                 {nombreEmpresa}
               </div>
             </div>
           </div>
 
-          <div className="flex flex-col gap-8 min-w-[360px]">
+          {/* DERECHA */}
+          <div className="flex flex-col gap-6 min-w-[320px]">
 
             <div>
-              <div className="text-sm uppercase text-zinc-400 mb-3 tracking-wider">
+              <div className="text-sm uppercase text-zinc-400 mb-2 tracking-wider">
                 Estado del plan
               </div>
 
-              <div className="px-6 py-4 rounded-full bg-green-50 border border-green-200 text-green-700 font-semibold shadow-sm text-lg">
-                Plan {estadoPlan}
+              <div className="px-5 py-3 rounded-full bg-green-50 border border-green-200 text-green-700 font-semibold text-lg">
+                {estadoPlan}
               </div>
             </div>
 
             <div>
-              <div className="text-sm uppercase text-zinc-400 mb-3 tracking-wider">
+              <div className="text-sm uppercase text-zinc-400 mb-2 tracking-wider">
                 Tipo de plan
               </div>
 
-              <div className="text-sm text-zinc-500 mb-6">
-                Haz click en el plan para verlo detalladamente.
-              </div>
-
-              <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-4">
                 {renderPlan("basico", "Básico")}
                 {renderPlan("premium", "Premium")}
                 {renderPlan("profesional", "Profesional")}

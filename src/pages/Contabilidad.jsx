@@ -1,30 +1,44 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
-import { useBarberia } from "../context/BarberiaContext";
+import { useWork } from "../context/WorkContext";
+import useContabilidad from "../hooks/useContabilidad";
 
 import ContabilidadFilters from "../components/contabilidad/ContabilidadFilters";
-import TablaCortes from "../components/contabilidad/TablaCortes";
+import TablaMovimientos from "../components/contabilidad/TablaMovimientos";
 import ResumenTotales from "../components/contabilidad/ResumenTotales";
-import ResumenPorBarbero from "../components/contabilidad/ResumenPorBarbero";
-import TopBarberosBox from "../components/contabilidad/TopBarberosBox";
+import ResumenPorProducto from "../components/contabilidad/ResumenPorProducto";
+import TopProductosBox from "../components/contabilidad/TopProductosBox";
 
 export default function Contabilidad() {
-  const { barberia, loading: loadingBarberia } = useBarberia();
+  const { empresa, loading: loadingEmpresa } = useWork();
 
   const [fecha, setFecha] = useState(
     new Date().toISOString().slice(0, 10)
   );
   const [modo, setModo] = useState("dia");
-  const [barberoFiltro, setBarberoFiltro] = useState("todos");
+  const [categoriaFiltro, setCategoriaFiltro] = useState("todas");
 
-  const [cortes, setCortes] = useState([]);
-  const [loading, setLoading] = useState(false);
 
-  const barberiaId = barberia?.id;
 
-  /* =========================
-     RANGO FECHA
-  ========================= */
+  const empresaId = empresa?.id;
+  const { inicio, fin } =
+  modo === "dia"
+    ? getRangoDiaISO(fecha)
+    : getRangoMesISO(fecha);
+
+const {
+  movimientos,
+  totales,
+  loading,
+} = useContabilidad(empresaId, {
+  fechaInicio: inicio,
+  fechaFin: fin,
+});
+
+
+  /* ===============================
+     RANGOS FECHA
+  =============================== */
 
   function getRangoDiaISO(dateStr) {
     const [y, m, d] = dateStr.split("-");
@@ -42,202 +56,182 @@ export default function Contabilidad() {
     return { inicio: inicio.toISOString(), fin: fin.toISOString() };
   }
 
-  /* =========================
-     FETCH
-  ========================= */
+  /* ===============================
+     FETCH MOVIMIENTOS
+  =============================== */
 
-  useEffect(() => {
-    if (!barberiaId) return;
-    fetchCortes();
-  }, [fecha, modo, barberiaId]);
+  
 
-  async function fetchCortes() {
-    if (!barberiaId) return;
+  /* ===============================
+     FILTROS
+  =============================== */
 
-    setLoading(true);
-
-    try {
-      const { inicio, fin } =
-        modo === "dia"
-          ? getRangoDiaISO(fecha)
-          : getRangoMesISO(fecha);
-
-      const { data, error } = await supabase
-        .from("v_cortes_contabilidad")
-        .select("*")
-        .eq("barberia_id", barberiaId)
-        .gte("created_at", inicio)
-        .lte("created_at", fin)
-        .order("created_at", { ascending: true });
-
-      if (error) throw error;
-
-      setCortes(data || []);
-    } catch (err) {
-      console.error("Error contabilidad:", err);
-      setCortes([]);
-    }
-
-    setLoading(false);
-  }
-
-  /* =========================
-     FILTRO
-  ========================= */
-
-  const cortesFiltrados = useMemo(() => {
-    if (barberoFiltro === "todos") return cortes;
-    return cortes.filter(
-      (c) => c.barbero_nombre === barberoFiltro
+  const movimientosFiltrados = useMemo(() => {
+    if (categoriaFiltro === "todas") return movimientos;
+    return movimientos.filter(
+      (m) => m.categoria === categoriaFiltro
     );
-  }, [cortes, barberoFiltro]);
+  }, [movimientos, categoriaFiltro]);
 
-  /* =========================
+  /* ===============================
      TOTALES
-  ========================= */
+  =============================== */
 
-  const totalIngresos = useMemo(
-    () =>
-      cortesFiltrados.reduce(
-        (acc, c) => acc + Number(c.precio || 0),
-        0
-      ),
-    [cortesFiltrados]
-  );
+  const totalVentas = totales.totalVentas;
+const totalCompras = totales.totalCompras;
+const utilidad = totales.utilidadNeta;
 
-  const totalBarberos = useMemo(
-    () =>
-      cortesFiltrados.reduce(
-        (acc, c) => acc + Number(c.monto_barbero || 0),
-        0
-      ),
-    [cortesFiltrados]
-  );
+  /* ===============================
+     RESUMEN POR CATEGORÍA
+  =============================== */
 
-  const totalLocal = useMemo(
-    () =>
-      cortesFiltrados.reduce(
-        (acc, c) => acc + Number(c.monto_barberia || 0),
-        0
-      ),
-    [cortesFiltrados]
-  );
-
-  /* =========================
-     RESUMEN BARBEROS
-  ========================= */
-
-  const resumenBarberos = useMemo(() => {
+  const resumenCategorias = useMemo(() => {
     const acc = {};
 
-    cortesFiltrados.forEach((c) => {
-      const nombre = c.barbero_nombre || "Sin nombre";
+    movimientosFiltrados.forEach((m) => {
+      const cat = m.categoria || "Sin categoría";
 
-      if (!acc[nombre]) {
-        acc[nombre] = {
-          nombre,
-          cortes: 0,
-          ganado: 0,
-          generado: 0,
+      if (!acc[cat]) {
+        acc[cat] = {
+          categoria: cat,
+          ventas: 0,
+          compras: 0,
         };
       }
 
-      acc[nombre].cortes += 1;
-      acc[nombre].ganado += Number(c.monto_barbero || 0);
-      acc[nombre].generado += Number(c.precio || 0);
+      acc[cat].ventas += Number(m.total_venta || 0);
+      acc[cat].compras += Number(m.total_compra || 0);
     });
 
     return Object.values(acc).sort(
-      (a, b) => b.ganado - a.ganado
+      (a, b) => b.ventas - a.ventas
     );
-  }, [cortesFiltrados]);
+  }, [movimientosFiltrados]);
 
-  const topBarberos = useMemo(() => {
+  /* ===============================
+     TOP PRODUCTOS
+  =============================== */
+
+  const topProductos = useMemo(() => {
     const acc = {};
 
-    cortes.forEach((c) => {
-      const nombre = c.barbero_nombre || "Sin nombre";
+    movimientos.forEach((m) => {
+      const nombre = m.producto || "Sin nombre";
       if (!acc[nombre]) acc[nombre] = { nombre, total: 0 };
-      acc[nombre].total += Number(c.precio || 0);
+      acc[nombre].total += Number(m.total_venta || 0);
     });
 
     return Object.values(acc)
       .sort((a, b) => b.total - a.total)
       .slice(0, 3);
-  }, [cortes]);
+  }, [movimientos]);
 
-  const barberosDisponibles = useMemo(() => {
+  const categoriasDisponibles = useMemo(() => {
     const set = new Set();
-    cortes.forEach(
-      (c) => c.barbero_nombre && set.add(c.barbero_nombre)
+    movimientos.forEach(
+      (m) => m.categoria && set.add(m.categoria)
     );
     return Array.from(set).sort();
-  }, [cortes]);
+  }, [movimientos]);
 
-  if (loadingBarberia) {
-    return <p>Cargando barbería…</p>;
+  /* ===============================
+     LOADING EMPRESA
+  =============================== */
+
+  if (loadingEmpresa) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center text-zinc-400">
+        Cargando empresa…
+      </div>
+    );
   }
 
-  /* =========================
-     UI FINAL ORDENADA
-  ========================= */
+  /* ===============================
+     UI
+  =============================== */
 
   return (
-    <div className="space-y-6">
+    <div className="relative min-h-screen bg-gradient-to-br from-[#0b0f14] via-[#0f1720] to-[#0c1117] text-zinc-100 p-6">
 
-      <ContabilidadFilters
-        fecha={fecha}
-        setFecha={setFecha}
-        modo={modo}
-        setModo={setModo}
-        barberoFiltro={barberoFiltro}
-        setBarberoFiltro={setBarberoFiltro}
-        barberosDisponibles={barberosDisponibles}
-      />
+      {/* Glow decorativo */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-[-120px] left-[-120px] w-[400px] h-[400px] bg-emerald-500/10 blur-[140px] rounded-full" />
+        <div className="absolute bottom-[-120px] right-[-120px] w-[400px] h-[400px] bg-cyan-500/10 blur-[140px] rounded-full" />
+      </div>
 
-      {/* ===== TOTALES + MEJORES ===== */}
+      <div className="relative space-y-8">
 
-      <div className="grid grid-cols-12 gap-6 items-stretch">
+        {/* HEADER */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              Contabilidad
+            </h1>
+            <p className="text-sm text-zinc-400">
+              Resumen financiero estructurado del inventario
+            </p>
+          </div>
 
-        <div className="col-span-12 xl:col-span-8">
-          <ResumenTotales
-            totalIngresos={totalIngresos}
-            totalBarberos={totalBarberos}
-            totalLocal={totalLocal}
+          <div className="text-xs px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 backdrop-blur">
+            Modo profesional
+          </div>
+        </div>
+
+        {/* FILTROS */}
+        <div className="bg-white/5 border border-white/10 backdrop-blur-xl rounded-2xl p-6 shadow-xl">
+          <ContabilidadFilters
+            fecha={fecha}
+            setFecha={setFecha}
+            modo={modo}
+            setModo={setModo}
+            categoriaFiltro={categoriaFiltro}
+            setCategoriaFiltro={setCategoriaFiltro}
+            categoriasDisponibles={categoriasDisponibles}
+          />
+        </div>
+
+        {/* TOTALES + TOP */}
+        <div className="grid grid-cols-12 gap-6 items-stretch">
+
+          <div className="col-span-12 xl:col-span-8 bg-white/5 border border-white/10 backdrop-blur-xl rounded-2xl p-6 shadow-xl">
+            <ResumenTotales
+              totalVentas={totalVentas}
+              totalCompras={totalCompras}
+              utilidad={utilidad}
+              loading={loading}
+            />
+          </div>
+
+          {categoriaFiltro === "todas" && (
+            <div className="col-span-12 xl:col-span-4 bg-white/5 border border-white/10 backdrop-blur-xl rounded-2xl p-6 shadow-xl">
+              <TopProductosBox
+                topProductos={topProductos}
+                modo={modo}
+                loading={loading}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* TABLA */}
+        <div className="bg-white/5 border border-white/10 backdrop-blur-xl rounded-2xl p-6 shadow-xl">
+          <TablaMovimientos
+            movimientos={movimientosFiltrados}
             loading={loading}
           />
         </div>
 
-        {barberoFiltro === "todos" && (
-          <div className="col-span-12 xl:col-span-4">
-            <TopBarberosBox
-              topBarberos={topBarberos}
-              modo={modo}
-              loading={loading}
-            />
+        {/* RESUMEN POR CATEGORÍA */}
+        {categoriaFiltro === "todas" && (
+          <div className="bg-white/5 border border-white/10 backdrop-blur-xl rounded-2xl p-6 shadow-xl">
+            <ResumenPorProducto
+  resumen={resumenCategorias}
+  loading={loading}
+/>
           </div>
         )}
 
       </div>
-
-      {/* ===== TABLA ===== */}
-
-      <TablaCortes
-        cortes={cortesFiltrados}
-        loading={loading}
-      />
-
-      {/* ===== CORTES POR BARBERO FULL WIDTH ===== */}
-
-      {barberoFiltro === "todos" && (
-        <div>
-          <ResumenPorBarbero
-            resumen={resumenBarberos}
-            loading={loading}
-          />
-        </div>
-      )}
-
     </div>
   );
 }
