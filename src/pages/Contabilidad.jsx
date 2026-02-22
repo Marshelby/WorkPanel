@@ -18,27 +18,20 @@ export default function Contabilidad() {
   const [modo, setModo] = useState("dia");
   const [categoriaFiltro, setCategoriaFiltro] = useState("todas");
 
-
-
   const empresaId = empresa?.id;
   const { inicio, fin } =
-  modo === "dia"
-    ? getRangoDiaISO(fecha)
-    : getRangoMesISO(fecha);
+    modo === "dia"
+      ? getRangoDiaISO(fecha)
+      : getRangoMesISO(fecha);
 
-const {
-  movimientos,
-  totales,
-  loading,
-} = useContabilidad(empresaId, {
-  fechaInicio: inicio,
-  fechaFin: fin,
-});
-
-
-  /* ===============================
-     RANGOS FECHA
-  =============================== */
+  const {
+    movimientos,
+    totales,
+    loading,
+  } = useContabilidad(empresaId, {
+    fechaInicio: inicio,
+    fechaFin: fin,
+  });
 
   function getRangoDiaISO(dateStr) {
     const [y, m, d] = dateStr.split("-");
@@ -56,16 +49,6 @@ const {
     return { inicio: inicio.toISOString(), fin: fin.toISOString() };
   }
 
-  /* ===============================
-     FETCH MOVIMIENTOS
-  =============================== */
-
-  
-
-  /* ===============================
-     FILTROS
-  =============================== */
-
   const movimientosFiltrados = useMemo(() => {
     if (categoriaFiltro === "todas") return movimientos;
     return movimientos.filter(
@@ -73,54 +56,30 @@ const {
     );
   }, [movimientos, categoriaFiltro]);
 
-  /* ===============================
-     TOTALES
-  =============================== */
-
   const totalVentas = totales.totalVentas;
-const totalCompras = totales.totalCompras;
-const utilidad = totales.utilidadNeta;
-
-  /* ===============================
-     RESUMEN POR CATEGORÍA
-  =============================== */
+  const totalCompras = totales.totalCompras;
+  const utilidad = totales.utilidadNeta;
 
   const resumenCategorias = useMemo(() => {
     const acc = {};
-
     movimientosFiltrados.forEach((m) => {
       const cat = m.categoria || "Sin categoría";
-
       if (!acc[cat]) {
-        acc[cat] = {
-          categoria: cat,
-          ventas: 0,
-          compras: 0,
-        };
+        acc[cat] = { categoria: cat, ventas: 0, compras: 0 };
       }
-
       acc[cat].ventas += Number(m.total_venta || 0);
       acc[cat].compras += Number(m.total_compra || 0);
     });
-
-    return Object.values(acc).sort(
-      (a, b) => b.ventas - a.ventas
-    );
+    return Object.values(acc).sort((a, b) => b.ventas - a.ventas);
   }, [movimientosFiltrados]);
-
-  /* ===============================
-     TOP PRODUCTOS
-  =============================== */
 
   const topProductos = useMemo(() => {
     const acc = {};
-
     movimientos.forEach((m) => {
       const nombre = m.producto || "Sin nombre";
       if (!acc[nombre]) acc[nombre] = { nombre, total: 0 };
       acc[nombre].total += Number(m.total_venta || 0);
     });
-
     return Object.values(acc)
       .sort((a, b) => b.total - a.total)
       .slice(0, 3);
@@ -134,10 +93,6 @@ const utilidad = totales.utilidadNeta;
     return Array.from(set).sort();
   }, [movimientos]);
 
-  /* ===============================
-     LOADING EMPRESA
-  =============================== */
-
   if (loadingEmpresa) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center text-zinc-400">
@@ -146,39 +101,52 @@ const utilidad = totales.utilidadNeta;
     );
   }
 
-  /* ===============================
-     UI
-  =============================== */
-
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-[#0b0f14] via-[#0f1720] to-[#0c1117] text-zinc-100 p-6">
+    <div className="relative min-h-screen bg-gradient-to-br from-[#05070d] via-[#07101c] to-[#040812] text-zinc-100 p-8">
 
-      {/* Glow decorativo */}
+      {/* 🔵 Glow azul tecnológico */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-120px] left-[-120px] w-[400px] h-[400px] bg-emerald-500/10 blur-[140px] rounded-full" />
-        <div className="absolute bottom-[-120px] right-[-120px] w-[400px] h-[400px] bg-cyan-500/10 blur-[140px] rounded-full" />
+        <div className="absolute top-[-200px] left-[-200px] w-[600px] h-[600px] bg-blue-600/25 blur-[220px] rounded-full" />
+        <div className="absolute bottom-[-200px] right-[-200px] w-[600px] h-[600px] bg-cyan-400/20 blur-[220px] rounded-full" />
       </div>
 
-      <div className="relative space-y-8">
+      <div className="relative space-y-10">
 
         {/* HEADER */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Contabilidad
-            </h1>
-            <p className="text-sm text-zinc-400">
-              Resumen financiero estructurado del inventario
-            </p>
+        <div className="relative overflow-hidden rounded-3xl p-10 border border-blue-400/20 bg-gradient-to-br from-[#0a1626]/85 via-[#0c1d33]/75 to-[#0a1626]/85 backdrop-blur-xl shadow-[0_0_80px_rgba(59,130,246,0.25)]">
+
+          <div className="absolute -top-32 -right-32 w-96 h-96 bg-blue-500/20 blur-[180px] rounded-full" />
+
+          <div className="flex items-center justify-between">
+
+            <div>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-3 h-3 rounded-full bg-blue-400 animate-pulse shadow-[0_0_16px_rgba(59,130,246,0.9)]" />
+                <p className="text-xs uppercase tracking-[0.35em] text-blue-300/70">
+                  Control Financiero
+                </p>
+              </div>
+
+              <h1 className="text-5xl font-extrabold tracking-tight bg-gradient-to-r from-blue-300 via-blue-400 to-cyan-400 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(59,130,246,0.8)]">
+                CONTABILIDAD
+              </h1>
+
+              <p className="mt-4 text-zinc-400 max-w-2xl">
+                Resumen financiero estructurado del inventario y rendimiento operativo.
+              </p>
+            </div>
+
+            <div className="text-xs px-4 py-2 rounded-full bg-blue-500/15 text-blue-300 border border-blue-500/30 backdrop-blur shadow-[0_0_20px_rgba(59,130,246,0.4)]">
+              Modo profesional
+            </div>
+
           </div>
 
-          <div className="text-xs px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 backdrop-blur">
-            Modo profesional
-          </div>
+          <div className="mt-8 h-px w-full bg-gradient-to-r from-transparent via-blue-400/40 to-transparent" />
         </div>
 
         {/* FILTROS */}
-        <div className="bg-white/5 border border-white/10 backdrop-blur-xl rounded-2xl p-6 shadow-xl">
+        <div className="bg-gradient-to-br from-[#0b1a2e]/80 to-[#0a1626]/80 border border-blue-400/15 backdrop-blur-xl rounded-2xl p-6 shadow-[0_0_50px_rgba(59,130,246,0.15)]">
           <ContabilidadFilters
             fecha={fecha}
             setFecha={setFecha}
@@ -191,9 +159,9 @@ const utilidad = totales.utilidadNeta;
         </div>
 
         {/* TOTALES + TOP */}
-        <div className="grid grid-cols-12 gap-6 items-stretch">
+        <div className="grid grid-cols-12 gap-8 items-stretch">
 
-          <div className="col-span-12 xl:col-span-8 bg-white/5 border border-white/10 backdrop-blur-xl rounded-2xl p-6 shadow-xl">
+          <div className="col-span-12 xl:col-span-8 bg-gradient-to-br from-[#0b1a2e]/80 to-[#0a1626]/80 border border-blue-400/15 backdrop-blur-xl rounded-2xl p-6 shadow-[0_0_60px_rgba(59,130,246,0.15)] transition-all duration-300 hover:shadow-[0_0_80px_rgba(59,130,246,0.35)]">
             <ResumenTotales
               totalVentas={totalVentas}
               totalCompras={totalCompras}
@@ -203,7 +171,7 @@ const utilidad = totales.utilidadNeta;
           </div>
 
           {categoriaFiltro === "todas" && (
-            <div className="col-span-12 xl:col-span-4 bg-white/5 border border-white/10 backdrop-blur-xl rounded-2xl p-6 shadow-xl">
+            <div className="col-span-12 xl:col-span-4 bg-gradient-to-br from-[#0b1a2e]/80 to-[#0a1626]/80 border border-blue-400/15 backdrop-blur-xl rounded-2xl p-6 shadow-[0_0_60px_rgba(59,130,246,0.15)] transition-all duration-300 hover:shadow-[0_0_80px_rgba(59,130,246,0.35)]">
               <TopProductosBox
                 topProductos={topProductos}
                 modo={modo}
@@ -214,7 +182,7 @@ const utilidad = totales.utilidadNeta;
         </div>
 
         {/* TABLA */}
-        <div className="bg-white/5 border border-white/10 backdrop-blur-xl rounded-2xl p-6 shadow-xl">
+        <div className="bg-gradient-to-br from-[#0b1a2e]/80 to-[#0a1626]/80 border border-blue-400/15 backdrop-blur-xl rounded-2xl p-6 shadow-[0_0_60px_rgba(59,130,246,0.15)]">
           <TablaMovimientos
             movimientos={movimientosFiltrados}
             loading={loading}
@@ -223,11 +191,11 @@ const utilidad = totales.utilidadNeta;
 
         {/* RESUMEN POR CATEGORÍA */}
         {categoriaFiltro === "todas" && (
-          <div className="bg-white/5 border border-white/10 backdrop-blur-xl rounded-2xl p-6 shadow-xl">
+          <div className="bg-gradient-to-br from-[#0b1a2e]/80 to-[#0a1626]/80 border border-blue-400/15 backdrop-blur-xl rounded-2xl p-6 shadow-[0_0_60px_rgba(59,130,246,0.15)]">
             <ResumenPorProducto
-  resumen={resumenCategorias}
-  loading={loading}
-/>
+              resumen={resumenCategorias}
+              loading={loading}
+            />
           </div>
         )}
 

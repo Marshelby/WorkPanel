@@ -11,18 +11,10 @@ export default function BodegaTabla({
   const [soloStockBajo, setSoloStockBajo] = useState(false);
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
 
-  /* =========================
-     CATEGORÍAS
-  ========================= */
-
   const categorias = useMemo(() => {
     const unicas = [...new Set(productos.map((p) => p.categoria_nombre))];
     return ["todas", ...unicas];
   }, [productos]);
-
-  /* =========================
-     FILTROS
-  ========================= */
 
   const productosFiltrados = useMemo(() => {
     return productos.filter((p) => {
@@ -48,28 +40,41 @@ export default function BodegaTabla({
       minimumFractionDigits: 0,
     }).format(num || 0);
 
-  /* =========================
-     UI
-  ========================= */
-
   return (
     <>
-      <div className="relative overflow-hidden rounded-3xl p-6 border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-800 shadow-xl space-y-6">
+      <div
+        className="relative overflow-hidden rounded-3xl p-8
+                   border border-blue-400/15
+                   bg-gradient-to-br from-[#0b1a2e]/80 to-[#0a1626]/80
+                   backdrop-blur-xl
+                   shadow-[0_0_60px_rgba(59,130,246,0.15)]
+                   space-y-8"
+      >
+        {/* Glow decorativo */}
+        <div className="absolute -top-20 -right-20 w-60 h-60 bg-blue-500/10 blur-[140px] rounded-full pointer-events-none" />
 
         {/* HEADER */}
-        <h2 className="text-lg font-semibold text-white">
+        <h2
+          className="text-xl font-bold tracking-tight
+                     bg-gradient-to-r from-blue-300 to-cyan-400
+                     bg-clip-text text-transparent"
+        >
           📦 Stock actual
         </h2>
 
         {/* FILTROS */}
-        <div className="flex flex-wrap items-center gap-4 justify-between">
+        <div className="flex flex-wrap items-center gap-6 justify-between">
 
           <div className="flex flex-wrap items-center gap-4">
 
             <select
               value={categoriaSeleccionada}
               onChange={(e) => setCategoriaSeleccionada(e.target.value)}
-              className="px-4 py-2 rounded-xl bg-zinc-800 border border-zinc-700 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+              className="px-4 py-2 rounded-xl 
+                         bg-[#0f1f33] border border-blue-400/20 
+                         text-zinc-200
+                         focus:ring-2 focus:ring-blue-500/50 
+                         outline-none transition"
             >
               {categorias.map((cat, i) => (
                 <option key={i} value={cat}>
@@ -83,7 +88,11 @@ export default function BodegaTabla({
               placeholder="Buscar producto..."
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
-              className="px-4 py-2 rounded-xl bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-400 focus:ring-2 focus:ring-blue-500 outline-none w-64"
+              className="px-4 py-2 rounded-xl 
+                         bg-[#0f1f33] border border-blue-400/20 
+                         text-zinc-200 placeholder-zinc-500
+                         focus:ring-2 focus:ring-blue-500/50 
+                         outline-none transition w-64"
             />
 
             <label className="flex items-center gap-2 text-sm text-zinc-300 cursor-pointer">
@@ -104,27 +113,27 @@ export default function BodegaTabla({
         </div>
 
         {/* TABLA */}
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto rounded-2xl border border-white/5">
           {loading ? (
-            <p className="text-sm text-zinc-400">
+            <p className="text-sm text-zinc-400 p-4">
               Cargando productos...
             </p>
           ) : productosFiltrados.length === 0 ? (
-            <p className="text-sm text-zinc-400">
+            <p className="text-sm text-zinc-400 p-4">
               No se encontraron productos.
             </p>
           ) : (
-            <table className="w-full text-sm text-left">
+            <table className="w-full text-sm">
 
-              <thead>
-                <tr className="border-b border-zinc-700 text-zinc-400 uppercase text-xs tracking-wider">
-                  <th className="py-3">Producto</th>
-                  <th>Categoría</th>
-                  <th>Stock</th>
-                  <th>Compra</th>
-                  <th>Venta</th>
-                  <th>Utilidad</th>
-                  <th className="text-right">Acción</th>
+              <thead className="bg-white/5 backdrop-blur sticky top-0 z-10">
+                <tr className="text-zinc-400 uppercase text-xs tracking-[0.15em] border-b border-white/5">
+                  <th className="py-4 px-4 text-left">Producto</th>
+                  <th className="px-4 text-left">Categoría</th>
+                  <th className="px-4 text-left">Stock</th>
+                  <th className="px-4 text-left">Compra</th>
+                  <th className="px-4 text-left">Venta</th>
+                  <th className="px-4 text-left">Utilidad</th>
+                  <th className="px-4 text-right">Acción</th>
                 </tr>
               </thead>
 
@@ -142,36 +151,43 @@ export default function BodegaTabla({
                   return (
                     <tr
                       key={index}
-                      className="border-b border-zinc-800 hover:bg-white/5 transition"
+                      className="border-b border-white/5
+                                 hover:bg-white/5
+                                 transition-all duration-200"
                     >
-                      <td className="py-3 font-semibold text-white">
+                      <td className="py-4 px-4 font-semibold text-zinc-100">
                         {p.producto}
                       </td>
 
-                      <td className="text-zinc-400">
+                      <td className="px-4 text-zinc-400">
                         {p.categoria_nombre}
                       </td>
 
-                      <td className={`font-semibold ${stockColor}`}>
+                      <td className={`px-4 font-semibold ${stockColor}`}>
                         {stock}
                       </td>
 
-                      <td className="text-zinc-300">
+                      <td className="px-4 text-zinc-300">
                         {formatCLP(p.valor_total_compra)}
                       </td>
 
-                      <td className="text-zinc-300">
+                      <td className="px-4 text-zinc-300">
                         {formatCLP(p.valor_total_venta)}
                       </td>
 
-                      <td className="font-bold text-emerald-400">
+                      <td className="px-4 font-bold text-emerald-400">
                         {formatCLP(p.utilidad_proyectada)}
                       </td>
 
-                      <td className="text-right">
+                      <td className="px-4 text-right">
                         <button
                           onClick={() => setProductoSeleccionado(p)}
-                          className="px-3 py-1 text-xs bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg hover:bg-blue-500/30 transition"
+                          className="px-4 py-1.5 text-xs rounded-full
+                                     bg-blue-500/20 text-blue-400
+                                     border border-blue-500/30
+                                     hover:bg-blue-500/30
+                                     hover:shadow-[0_0_10px_rgba(59,130,246,0.5)]
+                                     transition-all duration-200"
                         >
                           Ajustar
                         </button>
@@ -186,7 +202,6 @@ export default function BodegaTabla({
         </div>
       </div>
 
-      {/* MODAL */}
       {productoSeleccionado && (
         <AjusteStockModal
           producto={productoSeleccionado}

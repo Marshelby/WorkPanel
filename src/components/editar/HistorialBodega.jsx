@@ -18,40 +18,54 @@ export default function HistorialBodega({
       case "INGRESO":
         return {
           label: "Ingreso",
-          badge: "bg-emerald-500/20 text-emerald-400",
+          badge: "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30",
           signo: "+",
         };
       case "VENTA":
         return {
           label: "Venta",
-          badge: "bg-red-500/20 text-red-400",
+          badge: "bg-red-500/20 text-red-400 border border-red-500/30",
           signo: "-",
         };
       case "AJUSTE_POS":
         return {
           label: "Suma",
-          badge: "bg-emerald-500/20 text-emerald-400",
+          badge: "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30",
           signo: "+",
         };
       case "AJUSTE_NEG":
         return {
           label: "Resta",
-          badge: "bg-red-500/20 text-red-400",
+          badge: "bg-red-500/20 text-red-400 border border-red-500/30",
           signo: "-",
         };
       default:
         return {
           label: tipo,
-          badge: "bg-zinc-500/20 text-zinc-400",
+          badge: "bg-zinc-500/20 text-zinc-400 border border-zinc-500/30",
           signo: "",
         };
     }
   };
 
   return (
-    <div className="relative overflow-hidden rounded-3xl p-6 border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-800 shadow-xl">
+    <div
+      className="relative overflow-hidden rounded-3xl p-8
+                 border border-blue-400/15
+                 bg-gradient-to-br from-[#0b1a2e]/80 to-[#0a1626]/80
+                 backdrop-blur-xl
+                 shadow-[0_0_60px_rgba(59,130,246,0.15)]
+                 transition-all duration-300
+                 hover:shadow-[0_0_80px_rgba(59,130,246,0.25)]"
+    >
+      {/* Glow decorativo */}
+      <div className="absolute -top-20 -left-20 w-60 h-60 bg-blue-500/10 blur-[140px] rounded-full pointer-events-none" />
 
-      <h2 className="text-lg font-semibold mb-6 text-white">
+      <h2
+        className="text-xl font-bold mb-8 tracking-tight
+                   bg-gradient-to-r from-blue-300 to-cyan-400
+                   bg-clip-text text-transparent"
+      >
         📋 Historial de movimientos
       </h2>
 
@@ -68,22 +82,22 @@ export default function HistorialBodega({
       )}
 
       {!loading && registros.length > 0 && (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto rounded-2xl border border-white/5">
           <table className="min-w-[1250px] w-full text-sm">
 
-            <thead>
-              <tr className="border-b border-zinc-700 text-zinc-400 uppercase text-xs tracking-wider">
-                <th className="py-3 px-3 text-left">Fecha</th>
-                <th className="px-3 text-left">Tipo</th>
-                <th className="px-3 text-left">Producto</th>
-                <th className="px-3 text-left">Categoría</th>
-                <th className="px-3 text-center">Cant.</th>
-                <th className="px-3 text-right">P. Compra</th>
-                <th className="px-3 text-right">P. Venta</th>
-                <th className="px-3 text-right">Total Compra</th>
-                <th className="px-3 text-right">Total Venta</th>
-                <th className="px-3 text-right">Utilidad</th>
-                <th className="px-3 text-left">Motivo</th>
+            <thead className="bg-white/5 backdrop-blur sticky top-0 z-10">
+              <tr className="text-zinc-400 uppercase text-xs tracking-[0.15em] border-b border-white/5">
+                <th className="py-4 px-4 text-left">Fecha</th>
+                <th className="px-4 text-left">Tipo</th>
+                <th className="px-4 text-left">Producto</th>
+                <th className="px-4 text-left">Categoría</th>
+                <th className="px-4 text-center">Cant.</th>
+                <th className="px-4 text-right">P. Compra</th>
+                <th className="px-4 text-right">P. Venta</th>
+                <th className="px-4 text-right">Total Compra</th>
+                <th className="px-4 text-right">Total Venta</th>
+                <th className="px-4 text-right">Utilidad</th>
+                <th className="px-4 text-left">Motivo</th>
               </tr>
             </thead>
 
@@ -105,48 +119,54 @@ export default function HistorialBodega({
                 return (
                   <tr
                     key={item.movimiento_id}
-                    className="border-b border-zinc-800 hover:bg-white/5 transition"
+                    className="border-b border-white/5
+                               hover:bg-white/5
+                               transition-all duration-200"
                   >
-                    <td className="py-3 px-3 text-zinc-400 text-xs">
+                    <td className="py-4 px-4 text-zinc-400 text-xs">
                       {formatFecha(item.fecha_movimiento)}
                     </td>
 
-                    <td className="px-3">
-                      <span className={`px-2 py-1 rounded-lg text-xs font-semibold ${tipo.badge}`}>
+                    <td className="px-4">
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-semibold ${tipo.badge}`}
+                      >
                         {tipo.label}
                       </span>
                     </td>
 
-                    <td className="px-3 font-semibold text-white">
+                    <td className="px-4 font-semibold text-zinc-100">
                       {item.producto}
                     </td>
 
-                    <td className="px-3 text-zinc-400">
+                    <td className="px-4 text-zinc-400">
                       {item.categoria}
                     </td>
 
-                    <td className={`px-3 text-center font-semibold ${cantidadColor}`}>
+                    <td
+                      className={`px-4 text-center font-semibold ${cantidadColor}`}
+                    >
                       {cantidadMostrada}
                     </td>
 
-                    <td className="px-3 text-right text-zinc-300">
+                    <td className="px-4 text-right text-zinc-300">
                       ${formatMoney(item.precio_compra_unitario)}
                     </td>
 
-                    <td className="px-3 text-right text-zinc-300">
+                    <td className="px-4 text-right text-zinc-300">
                       ${formatMoney(item.precio_venta_unitario)}
                     </td>
 
-                    <td className="px-3 text-right text-yellow-400 font-semibold">
+                    <td className="px-4 text-right text-yellow-400 font-semibold">
                       ${formatMoney(item.total_compra)}
                     </td>
 
-                    <td className="px-3 text-right text-emerald-400 font-semibold">
+                    <td className="px-4 text-right text-emerald-400 font-semibold">
                       ${formatMoney(item.total_venta)}
                     </td>
 
                     <td
-                      className={`px-3 text-right font-bold ${
+                      className={`px-4 text-right font-bold ${
                         item.utilidad_movimiento >= 0
                           ? "text-emerald-400"
                           : "text-red-400"
@@ -155,10 +175,9 @@ export default function HistorialBodega({
                       ${formatMoney(item.utilidad_movimiento)}
                     </td>
 
-                    <td className="px-3 text-zinc-400 text-xs break-words">
+                    <td className="px-4 text-zinc-400 text-xs break-words">
                       {item.motivo || "-"}
                     </td>
-
                   </tr>
                 );
               })}

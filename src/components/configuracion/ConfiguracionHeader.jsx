@@ -41,7 +41,7 @@ export default function ConfiguracionHeader({
       <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-md">
         <div className="absolute inset-0" onClick={cerrar} />
 
-        <div className="relative bg-[#111827] border border-white/10 w-[600px] max-w-[95%] rounded-2xl shadow-2xl p-10 text-zinc-100">
+        <div className="relative bg-[#0b1a2e] border border-blue-400/20 w-[600px] max-w-[95%] rounded-2xl shadow-[0_0_60px_rgba(59,130,246,0.25)] p-10 text-zinc-100">
           <button
             onClick={cerrar}
             className="absolute top-5 right-6 text-zinc-400 hover:text-white text-xl"
@@ -49,13 +49,13 @@ export default function ConfiguracionHeader({
             ✕
           </button>
 
-          <h2 className="text-2xl font-semibold mb-4 tracking-tight">
+          <h2 className="text-2xl font-semibold mb-4 tracking-tight text-blue-300">
             Plan {planSeleccionado}
           </h2>
 
           <p className="text-zinc-400">
             Para cambiar tu plan comunícate con soporte al{" "}
-            <span className="text-emerald-400 font-semibold">
+            <span className="text-cyan-400 font-semibold">
               {telefonoSoporte}
             </span>
           </p>
@@ -77,8 +77,8 @@ export default function ConfiguracionHeader({
           border backdrop-blur-xl
           ${
             activo
-              ? "bg-emerald-500/10 border-emerald-500/40 shadow-lg shadow-emerald-500/10 scale-[1.03]"
-              : "bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/10"
+              ? "bg-blue-500/10 border-blue-500/40 shadow-lg shadow-blue-500/10 scale-[1.03]"
+              : "bg-white/5 border-white/10 hover:border-blue-400/30 hover:bg-white/10"
           }
         `}
       >
@@ -87,7 +87,7 @@ export default function ConfiguracionHeader({
         </div>
 
         {activo && (
-          <span className="absolute top-2 right-3 text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-1 rounded-full">
+          <span className="absolute top-2 right-3 text-xs bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-1 rounded-full">
             ACTUAL
           </span>
         )}
@@ -97,21 +97,19 @@ export default function ConfiguracionHeader({
 
   return (
     <>
-      <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-10 shadow-xl">
+      <div className="rounded-2xl border border-blue-400/15 bg-gradient-to-br from-[#0b1a2e]/80 to-[#0a1626]/80 backdrop-blur-xl p-10 shadow-[0_0_60px_rgba(59,130,246,0.15)]">
 
         <div className="flex flex-col lg:flex-row justify-between gap-16">
 
           {/* IZQUIERDA */}
-          <div className="space-y-6 max-w-3xl">
-            <h1 className="text-4xl font-semibold tracking-tight text-zinc-100">
-              Configuración
+          <div className="space-y-8 max-w-3xl">
+
+            {/* NUEVO TÍTULO (ANTES SUBTÍTULO) */}
+            <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-blue-300 via-blue-400 to-cyan-400 bg-clip-text text-transparent drop-shadow-[0_0_25px_rgba(59,130,246,0.6)]">
+              Administra tu empresa y controla tu plan de forma profesional.
             </h1>
 
-            <p className="text-lg text-zinc-400">
-              Administra tu empresa y controla tu plan de forma profesional.
-            </p>
-
-            <div className="text-base text-zinc-400 space-y-2">
+            <div className="text-base text-zinc-400 space-y-3">
               <div>
                 📅 Fecha de pago:{" "}
                 <span className="font-semibold text-zinc-200">
@@ -121,14 +119,14 @@ export default function ConfiguracionHeader({
 
               <div>
                 📲 Soporte:{" "}
-                <span className="font-semibold text-emerald-400">
+                <span className="font-semibold text-cyan-400">
                   {telefonoSoporte}
                 </span>
               </div>
             </div>
 
-            <div className="pt-6 border-t border-white/10">
-              <div className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+            <div className="pt-6 border-t border-blue-400/10">
+              <div className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
                 {nombreEmpresa}
               </div>
             </div>
@@ -142,7 +140,7 @@ export default function ConfiguracionHeader({
                 Estado del plan
               </div>
 
-              <div className="px-5 py-3 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-semibold text-lg backdrop-blur">
+              <div className="px-5 py-3 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-300 font-semibold text-lg backdrop-blur shadow-[0_0_20px_rgba(59,130,246,0.25)]">
                 {estadoPlan}
               </div>
             </div>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
 
 export default function AjusteStockModal({
@@ -6,7 +6,7 @@ export default function AjusteStockModal({
   onClose,
   onSuccess,
 }) {
-  const [tipo, setTipo] = useState("añadir"); // añadir | quitar
+  const [tipo, setTipo] = useState("añadir");
   const [cantidad, setCantidad] = useState("");
   const [motivo, setMotivo] = useState("");
   const [loading, setLoading] = useState(false);
@@ -23,42 +23,40 @@ export default function AjusteStockModal({
       : stockActual;
 
   /* =========================
-     VALIDACIÓN
+     ESC PARA CERRAR
+  ========================= */
+
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [onClose]);
+
+  /* =========================
+     VALIDACIÓN (SIN CAMBIOS)
   ========================= */
 
   const validar = () => {
     if (!cantidad) return "Debes ingresar una cantidad.";
-
-    if (!/^\d+$/.test(cantidad))
-      return "Cantidad inválida.";
-
-    if (cantidad.length > 7)
-      return "Máximo 7 dígitos permitidos.";
-
-    if (cantidadNumero <= 0)
-      return "La cantidad debe ser mayor a 0.";
-
+    if (!/^\d+$/.test(cantidad)) return "Cantidad inválida.";
+    if (cantidad.length > 7) return "Máximo 7 dígitos permitidos.";
+    if (cantidadNumero <= 0) return "La cantidad debe ser mayor a 0.";
     if (tipo === "quitar" && cantidadNumero > stockActual)
       return "No puedes quitar más que el stock actual.";
-
     if (nuevoStock < 0)
       return "El ajuste dejaría el stock en negativo.";
-
-    if (!motivo.trim())
-      return "Debes ingresar un motivo.";
-
+    if (!motivo.trim()) return "Debes ingresar un motivo.";
     if (motivo.trim().length < 5)
       return "El motivo debe tener al menos 5 caracteres.";
-
     if (motivo.trim().length > 30)
       return "Máximo 30 caracteres en el motivo.";
-
     return null;
   };
-
-  /* =========================
-     SUBMIT
-  ========================= */
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -97,14 +95,34 @@ export default function AjusteStockModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50">
-      <div className="relative w-full max-w-md rounded-3xl p-6 border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-800 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md">
 
-        <h2 className="text-xl font-bold text-white mb-4">
+      {/* Overlay click */}
+      <div className="absolute inset-0" onClick={onClose} />
+
+      <div
+        className="relative w-full max-w-md rounded-3xl p-8
+                   border border-blue-400/20
+                   bg-gradient-to-br from-[#0b1a2e] to-[#0a1626]
+                   shadow-[0_0_80px_rgba(59,130,246,0.25)]
+                   animate-[fadeIn_0.25s_ease]"
+      >
+
+        {/* BOTÓN CERRAR */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-zinc-400 hover:text-white transition text-xl"
+        >
+          ✕
+        </button>
+
+        <h2 className="text-2xl font-bold mb-6 tracking-tight
+                       bg-gradient-to-r from-blue-300 to-cyan-400
+                       bg-clip-text text-transparent">
           Ajustar stock
         </h2>
 
-        <div className="text-sm text-zinc-400 space-y-1 mb-4">
+        <div className="text-sm text-zinc-400 space-y-2 mb-6">
           <p>
             Producto:
             <span className="text-white font-semibold ml-1">
@@ -126,10 +144,10 @@ export default function AjusteStockModal({
             <button
               type="button"
               onClick={() => setTipo("añadir")}
-              className={`flex-1 py-2 rounded-xl border text-sm font-medium transition ${
+              className={`flex-1 py-2 rounded-xl border text-sm font-medium transition-all duration-200 ${
                 tipo === "añadir"
-                  ? "bg-emerald-500/20 border-emerald-500/40 text-emerald-400"
-                  : "bg-zinc-800 border-zinc-700 text-zinc-400"
+                  ? "bg-emerald-500/20 border-emerald-500/40 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.4)]"
+                  : "bg-[#0f1f33] border-blue-400/20 text-zinc-400"
               }`}
             >
               Añadir stock
@@ -138,10 +156,10 @@ export default function AjusteStockModal({
             <button
               type="button"
               onClick={() => setTipo("quitar")}
-              className={`flex-1 py-2 rounded-xl border text-sm font-medium transition ${
+              className={`flex-1 py-2 rounded-xl border text-sm font-medium transition-all duration-200 ${
                 tipo === "quitar"
-                  ? "bg-red-500/20 border-red-500/40 text-red-400"
-                  : "bg-zinc-800 border-zinc-700 text-zinc-400"
+                  ? "bg-red-500/20 border-red-500/40 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.4)]"
+                  : "bg-[#0f1f33] border-blue-400/20 text-zinc-400"
               }`}
             >
               Quitar stock
@@ -158,17 +176,24 @@ export default function AjusteStockModal({
                 setCantidad(e.target.value);
               }
             }}
-            className="w-full px-4 py-2 rounded-xl bg-zinc-800 border border-zinc-700 text-white"
+            className="w-full px-4 py-2 rounded-xl
+                       bg-[#0f1f33]
+                       border border-blue-400/20
+                       text-white
+                       focus:ring-2 focus:ring-blue-500/50
+                       outline-none transition"
           />
 
           {/* PREVIEW */}
           {cantidad !== "" && (
-            <div className="rounded-xl bg-zinc-800/60 border border-zinc-700 p-4 text-sm space-y-2">
+            <div className="rounded-xl bg-white/5 border border-white/10 p-4 text-sm space-y-2">
               <div className="flex justify-between">
                 <span className="text-zinc-400">Nuevo stock</span>
-                <span className={`font-semibold ${
-                  nuevoStock < 0 ? "text-red-400" : "text-white"
-                }`}>
+                <span
+                  className={`font-semibold ${
+                    nuevoStock < 0 ? "text-red-400" : "text-white"
+                  }`}
+                >
                   {nuevoStock}
                 </span>
               </div>
@@ -185,18 +210,25 @@ export default function AjusteStockModal({
               }
             }}
             rows={3}
-            className="w-full px-4 py-2 rounded-xl bg-zinc-800 border border-zinc-700 text-white resize-none"
+            className="w-full px-4 py-2 rounded-xl
+                       bg-[#0f1f33]
+                       border border-blue-400/20
+                       text-white resize-none
+                       focus:ring-2 focus:ring-blue-500/50
+                       outline-none transition"
           />
 
           {error && (
             <p className="text-sm text-red-400">{error}</p>
           )}
 
-          <div className="flex justify-end gap-3 pt-2">
+          <div className="flex justify-end gap-3 pt-4">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm rounded-lg border border-zinc-700 text-zinc-300"
+              className="px-4 py-2 text-sm rounded-xl
+                         border border-white/10 text-zinc-300
+                         hover:bg-white/5 transition"
             >
               Cancelar
             </button>
@@ -204,7 +236,12 @@ export default function AjusteStockModal({
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 text-sm rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30"
+              className="px-4 py-2 text-sm rounded-xl
+                         bg-blue-500/20 text-blue-400
+                         border border-blue-500/30
+                         hover:bg-blue-500/30
+                         hover:shadow-[0_0_20px_rgba(59,130,246,0.5)]
+                         transition"
             >
               {loading ? "Ajustando..." : "Confirmar ajuste"}
             </button>

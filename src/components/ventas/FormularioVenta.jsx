@@ -80,23 +80,28 @@ export default function FormularioVenta({ onRegistrarVenta, loading }) {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="relative overflow-hidden rounded-3xl p-8 border border-blue-500/20 bg-gradient-to-br from-zinc-900 to-zinc-800 shadow-[0_0_60px_rgba(59,130,246,0.15)] backdrop-blur-xl space-y-8">
 
-      <h3 className="text-xl font-semibold tracking-tight text-zinc-100">
+      {/* Glow layer */}
+      <div className="absolute inset-0 rounded-3xl bg-blue-500/5 opacity-30 pointer-events-none" />
+
+      <h3 className="text-xl font-semibold tracking-tight text-white">
         Registrar venta
       </h3>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-7">
 
         {/* PRODUCTO */}
-        <div>
-          <label className="text-xs uppercase tracking-wider text-zinc-500">
+        <div className="space-y-2">
+          <label className="text-xs uppercase tracking-[0.25em] text-zinc-500">
             Producto
           </label>
           <select
             value={productoId}
             onChange={(e) => setProductoId(e.target.value)}
-            className="w-full mt-2 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-zinc-100 backdrop-blur focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+            className="w-full bg-zinc-800/70 border border-zinc-700 rounded-2xl px-4 py-3 text-sm text-white
+                       focus:outline-none focus:ring-2 focus:ring-blue-500/50
+                       transition-all duration-300 hover:border-blue-500/40"
           >
             <option value="">Seleccionar producto</option>
             {productos.map((p) => (
@@ -108,8 +113,8 @@ export default function FormularioVenta({ onRegistrarVenta, loading }) {
         </div>
 
         {/* CANTIDAD */}
-        <div>
-          <label className="text-xs uppercase tracking-wider text-zinc-500">
+        <div className="space-y-2">
+          <label className="text-xs uppercase tracking-[0.25em] text-zinc-500">
             Cantidad
           </label>
           <input
@@ -117,32 +122,38 @@ export default function FormularioVenta({ onRegistrarVenta, loading }) {
             min="1"
             value={cantidad}
             onChange={(e) => setCantidad(Number(e.target.value))}
-            className="w-full mt-2 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-zinc-100 backdrop-blur focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+            className="w-full bg-zinc-800/70 border border-zinc-700 rounded-2xl px-4 py-3 text-sm text-white
+                       focus:outline-none focus:ring-2 focus:ring-blue-500/50
+                       transition-all duration-300 hover:border-blue-500/40"
           />
         </div>
 
         {/* PRECIO */}
-        <div>
-          <label className="text-xs uppercase tracking-wider text-zinc-500">
+        <div className="space-y-2">
+          <label className="text-xs uppercase tracking-[0.25em] text-zinc-500">
             Precio unitario
           </label>
           <input
             type="number"
             value={precioUnitario}
             onChange={(e) => setPrecioUnitario(Number(e.target.value))}
-            className="w-full mt-2 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-zinc-100 backdrop-blur focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+            className="w-full bg-zinc-800/70 border border-zinc-700 rounded-2xl px-4 py-3 text-sm text-white
+                       focus:outline-none focus:ring-2 focus:ring-blue-500/50
+                       transition-all duration-300 hover:border-blue-500/40"
           />
         </div>
 
         {/* MÉTODO PAGO */}
-        <div>
-          <label className="text-xs uppercase tracking-wider text-zinc-500">
+        <div className="space-y-2">
+          <label className="text-xs uppercase tracking-[0.25em] text-zinc-500">
             Método de pago
           </label>
           <select
             value={metodoPago}
             onChange={(e) => setMetodoPago(e.target.value)}
-            className="w-full mt-2 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-zinc-100 backdrop-blur focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+            className="w-full bg-zinc-800/70 border border-zinc-700 rounded-2xl px-4 py-3 text-sm text-white
+                       focus:outline-none focus:ring-2 focus:ring-blue-500/50
+                       transition-all duration-300 hover:border-blue-500/40"
           >
             <option value="EFECTIVO">Efectivo</option>
             <option value="TRANSFERENCIA">Transferencia</option>
@@ -151,12 +162,17 @@ export default function FormularioVenta({ onRegistrarVenta, loading }) {
           </select>
         </div>
 
-        {/* TOTAL */}
-        <div className="rounded-2xl p-5 border border-emerald-500/20 bg-emerald-500/5 backdrop-blur">
-          <p className="text-xs uppercase tracking-wider text-zinc-500">
+        {/* TOTAL CARD */}
+        <div className="rounded-3xl p-6 border border-emerald-500/30 
+                        bg-gradient-to-br from-emerald-500/10 to-emerald-500/5
+                        shadow-[0_0_50px_rgba(16,185,129,0.25)]
+                        transition-all duration-300">
+
+          <p className="text-xs uppercase tracking-[0.25em] text-zinc-500">
             Total calculado
           </p>
-          <p className="text-2xl font-bold text-emerald-400 mt-2">
+
+          <p className="text-3xl font-bold text-emerald-400 mt-3">
             ${total.toLocaleString("es-CL")}
           </p>
         </div>
@@ -165,10 +181,11 @@ export default function FormularioVenta({ onRegistrarVenta, loading }) {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-xl py-3 text-sm font-semibold tracking-wide 
-                     bg-gradient-to-r from-emerald-500 to-blue-500 
-                     hover:opacity-90 transition-all duration-200 
-                     shadow-lg shadow-emerald-500/20"
+          className="w-full rounded-2xl py-3 text-sm font-semibold tracking-wide
+                     bg-gradient-to-r from-emerald-500 via-blue-500 to-blue-600
+                     hover:scale-[1.02] transition-all duration-300
+                     shadow-[0_0_40px_rgba(59,130,246,0.4)]
+                     disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {loading ? "Registrando..." : "Registrar venta"}
         </button>

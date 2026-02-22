@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom"; 
 import { useEffect, useRef, useState } from "react";
 
 const links = [
@@ -34,11 +34,16 @@ export default function Sidebar() {
   return (
     <aside className="w-64 h-screen bg-gradient-to-b from-zinc-950 via-zinc-900 to-zinc-950 text-zinc-100 flex flex-col border-r border-white/10 relative overflow-hidden">
 
-      {/* Glow decorativo azul */}
+      {/* 🔵 Glow azul original (se mantiene) */}
       <div className="absolute top-20 -left-20 w-40 h-40 bg-blue-500 rounded-full blur-3xl opacity-10 pointer-events-none" />
 
+      {/* 🟠 NUEVAS motas naranjas estilo BajonPanel */}
+      <div className="absolute -top-10 -right-10 w-56 h-56 bg-orange-500 rounded-full blur-3xl opacity-10 pointer-events-none" />
+      <div className="absolute bottom-20 -left-16 w-40 h-40 bg-orange-400 rounded-full blur-3xl opacity-10 pointer-events-none" />
+      <div className="absolute top-1/2 -right-20 w-48 h-48 bg-amber-500 rounded-full blur-3xl opacity-5 pointer-events-none" />
+
       {/* Logo */}
-      <div className="h-20 flex items-center px-6 border-b border-white/10 flex-shrink-0">
+      <div className="h-20 flex items-center px-6 border-b border-white/10 flex-shrink-0 relative z-10">
         <span className="text-lg font-semibold tracking-tight">
           <span className="text-white">Work</span>
           <span className="text-blue-400 drop-shadow-[0_0_8px_rgba(59,130,246,0.7)]">
@@ -56,6 +61,7 @@ export default function Sidebar() {
           scrollbar-thin
           scrollbar-thumb-blue-500/30
           scrollbar-track-transparent
+          z-10
         "
       >
         {/* Indicador elástico */}
@@ -105,7 +111,7 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      <div className="p-4 border-t border-white/10 text-xs text-zinc-500">
+      <div className="p-4 border-t border-white/10 text-xs text-zinc-500 relative z-10">
         WorkPanel v1.0
       </div>
     </aside>

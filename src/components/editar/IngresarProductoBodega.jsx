@@ -107,18 +107,32 @@ export default function IngresarProductoBodega({
   ========================= */
 
   return (
-    <div className="relative overflow-hidden rounded-3xl p-6 border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-800 shadow-xl">
+    <div className="relative overflow-hidden rounded-3xl p-8 
+                    border border-blue-400/15 
+                    bg-gradient-to-br from-[#0b1a2e]/80 to-[#0a1626]/80 
+                    backdrop-blur-xl
+                    shadow-[0_0_60px_rgba(59,130,246,0.15)]
+                    transition-all duration-300
+                    hover:shadow-[0_0_80px_rgba(59,130,246,0.25)]">
 
-      <h2 className="text-lg font-semibold mb-6 text-white">
+      {/* Glow interno decorativo */}
+      <div className="absolute -top-20 -right-20 w-60 h-60 bg-blue-500/10 blur-[140px] rounded-full pointer-events-none" />
+
+      <h2 className="text-xl font-bold mb-8 tracking-tight
+                     bg-gradient-to-r from-blue-300 to-cyan-400 
+                     bg-clip-text text-transparent">
         ➕ Ingresar producto
       </h2>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-5 relative">
 
         <select
           value={categoriaId}
           onChange={(e) => setCategoriaId(e.target.value)}
-          className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-2 text-sm text-white"
+          className="w-full bg-[#0f1f33] border border-blue-400/20 
+                     rounded-xl px-4 py-3 text-sm text-zinc-200
+                     focus:outline-none focus:ring-2 focus:ring-blue-500/50
+                     transition-all duration-200"
         >
           <option value="">Seleccionar categoría</option>
           {categorias.map((cat) => (
@@ -133,7 +147,10 @@ export default function IngresarProductoBodega({
           placeholder="Nombre del producto"
           value={producto}
           onChange={(e) => setProducto(e.target.value)}
-          className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-2 text-sm text-white"
+          className="w-full bg-[#0f1f33] border border-blue-400/20 
+                     rounded-xl px-4 py-3 text-sm text-zinc-200
+                     focus:outline-none focus:ring-2 focus:ring-blue-500/50
+                     transition-all duration-200"
         />
 
         <input
@@ -141,7 +158,10 @@ export default function IngresarProductoBodega({
           placeholder="Descripción"
           value={descripcion}
           onChange={(e) => setDescripcion(e.target.value)}
-          className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-2 text-sm text-white"
+          className="w-full bg-[#0f1f33] border border-blue-400/20 
+                     rounded-xl px-4 py-3 text-sm text-zinc-200
+                     focus:outline-none focus:ring-2 focus:ring-blue-500/50
+                     transition-all duration-200"
         />
 
         <input
@@ -149,7 +169,10 @@ export default function IngresarProductoBodega({
           placeholder="Cantidad"
           value={cantidad}
           onChange={(e) => setCantidad(e.target.value)}
-          className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-2 text-sm text-white"
+          className="w-full bg-[#0f1f33] border border-blue-400/20 
+                     rounded-xl px-4 py-3 text-sm text-zinc-200
+                     focus:outline-none focus:ring-2 focus:ring-blue-500/50
+                     transition-all duration-200"
         />
 
         <input
@@ -157,7 +180,10 @@ export default function IngresarProductoBodega({
           placeholder="Precio compra"
           value={precioCompra}
           onChange={(e) => setPrecioCompra(e.target.value)}
-          className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-2 text-sm text-white"
+          className="w-full bg-[#0f1f33] border border-blue-400/20 
+                     rounded-xl px-4 py-3 text-sm text-zinc-200
+                     focus:outline-none focus:ring-2 focus:ring-blue-500/50
+                     transition-all duration-200"
         />
 
         <input
@@ -165,25 +191,32 @@ export default function IngresarProductoBodega({
           placeholder="Precio venta"
           value={precioVenta}
           onChange={(e) => setPrecioVenta(e.target.value)}
-          className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-2 text-sm text-white"
+          className="w-full bg-[#0f1f33] border border-blue-400/20 
+                     rounded-xl px-4 py-3 text-sm text-zinc-200
+                     focus:outline-none focus:ring-2 focus:ring-blue-500/50
+                     transition-all duration-200"
         />
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-500 text-white rounded-lg p-2 text-sm font-semibold hover:bg-blue-600 transition"
+          className="w-full mt-4 bg-gradient-to-r from-blue-500 to-cyan-500 
+                     text-white rounded-xl py-3 text-sm font-semibold
+                     shadow-lg shadow-blue-500/30
+                     hover:scale-[1.02] hover:shadow-blue-500/50
+                     transition-all duration-200"
         >
           {loading ? "Registrando..." : "Registrar ingreso"}
         </button>
 
         {error && (
-          <p className="text-sm text-red-400 text-center">
+          <p className="text-sm text-red-400 text-center mt-2">
             {error}
           </p>
         )}
 
         {success && (
-          <p className="text-sm text-emerald-400 text-center">
+          <p className="text-sm text-emerald-400 text-center mt-2">
             Ingreso registrado correctamente.
           </p>
         )}
